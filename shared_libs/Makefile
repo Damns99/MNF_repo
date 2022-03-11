@@ -1,6 +1,6 @@
 .PHONY: all
 
-all: libran2.so libmyfft.so
+all: libran2.so libmyfft.so libtridiag.so
 
 ran2.o: ran2.cpp ran2.h
 	g++ -std=c++2a -c -Wall -pedantic -fpic ran2.cpp
@@ -13,3 +13,9 @@ myfft.o: myfft.cpp myfft.h
 
 libmyfft.so: myfft.o
 	g++ -shared -o libmyfft.so myfft.o -lfftw3 -lm
+
+tridiag.o: tridiag.cpp tridiag.h
+	g++ -std=c++2a -c -Wall -pedantic -fpic tridiag.cpp
+
+libtridiag.so: tridiag.o
+	g++ -shared -o libtridiag.so tridiag.o
