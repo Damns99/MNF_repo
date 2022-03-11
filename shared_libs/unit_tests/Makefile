@@ -1,4 +1,4 @@
-.PHONY: all
+.PHONY: all clean
 
 INCLUDEPATH := ..
 LIBPATH := ..
@@ -39,3 +39,13 @@ test: text_io_unit_test cmdline_parser_unit_test vec_hist_unit_test ran2_unit_te
 	./ran2_unit_test
 	./myfft_unit_test
 	./tridiag_unit_test
+
+clean:
+	rm text_io_unit_test
+	rm text_io.txt
+	rm cmdline_parser_unit_test
+	rm vec_hist_unit_test
+	rm ran2_unit_test
+	rm ran2.txt
+	rm myfft_unit_test
+	rm tridiag_unit_test
