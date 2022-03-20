@@ -1,4 +1,4 @@
-.PHONY: all
+.PHONY: all clean
 
 all: test
 
@@ -7,3 +7,8 @@ rkms_test: rkms_test.cpp runge_kutta.h
 
 test: rkms_test
 	./rkms_test
+
+clean:
+	rm rkms_test
+	rm rk.txt
+	rm rk_richardson.txt
