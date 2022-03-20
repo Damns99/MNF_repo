@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdarg>
 #include <sstream>
+#include <vector>
 
 namespace textIo {
 	
@@ -22,7 +23,22 @@ namespace textIo {
 			}
 			return 0;
 		}
-
+		
+		template <typename T>
+		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, T* dest);
+		template <typename T, typename ... Args>
+		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, T* dest, Args ... args);
+		template <typename T>
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, T* orig);
+		template <typename T, typename ... Args>
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, T* orig, Args ... args);
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<double>& orig);
+		template <typename ... Args>
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<double>& orig, Args ... args);
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<std::vector<double>>& orig);
+		template <typename ... Args>
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<std::vector<double>>& orig, Args ... args);
+		
 		template <typename T>
 		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, T* dest) {
 			std::stringstream sstr;
@@ -50,6 +66,28 @@ namespace textIo {
 			return textOutSlave(outfile, delim, ind, args ...);
 		}
 		
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<double>& orig) {
+			outfile << orig[ind] << '\n';
+			return 0;
+		}
+		template <typename ... Args>
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<double>& orig, Args ... args) {
+			outfile << orig[ind] << delim;
+			return textOutSlave(outfile, delim, ind, args ...);
+		}
+		
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<std::vector<double>>& orig) {
+			int i;
+			for(i = 0; i < orig[0].size() - 1; i++) outfile << orig[ind][i] << delim;
+			outfile << orig[ind][i] << '\n';
+			return 0;
+		}
+		template <typename ... Args>
+		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<std::vector<double>>& orig, Args ... args) {
+			for(auto& orig_i: orig[ind]) outfile << orig_i;
+			outfile << delim;
+			return textOutSlave(outfile, delim, ind, args ...);
+		}
 	}
 	
 	template <typename ... Args>
@@ -77,4 +115,5 @@ namespace textIo {
 	}
 	
 }
+
 #endif
