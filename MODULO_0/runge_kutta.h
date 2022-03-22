@@ -50,9 +50,9 @@ namespace rungekutta {
 					for(int j = 0; j < i; j++) std::cout << " \t" << a[i-1][j];
 					std::cout << std::endl;
 				}
-				std::cout << " \t|";
+				std::cout << " \t|" << std::endl << " \t|";
 				for(int i = 0; i < s; i++) std::cout << " \t" << b[i];
-				std::cout << std::endl;
+				std::cout << std::endl << std::endl;
 			}
 			
 			void clear() {
@@ -97,7 +97,7 @@ namespace rungekutta {
 			}
 			
 			std::vector<std::vector<double>> run(int nsteps, double h) {
-				std::cout << "Starting calculation of " << nsteps << " points with step " << h << std::endl;
+				std::cout << "RungeKutta: " << nsteps << " points with step " << h << std::endl;
 				x.reserve(nsteps + n_max);
 				y.reserve(nsteps + n_max);
 				for(int i = 0; i < nsteps; i++) step(h);
@@ -119,8 +119,7 @@ namespace rungekutta {
 	
 	template <typename... Parameters>
 	void runWithRichardsonError(ExplicitRungeKutta<Parameters...> rk, double init_x, std::vector<double> & init_y, int nsteps, double h, std::vector<double>& x, std::vector<std::vector<double>>& y, std::vector<std::vector<double>>& dy) {
-		std::cout << "Running with Richardson Error Estimation." << std::endl;
-		std::cout << "It may take a while..." << std::endl;
+		std::cout << "Running with Richardson Error Estimation. It may take a while..." << std::endl;
 		rk.clear();
 		rk.setInit(init_x, init_y);
 		auto yh2 = rk.run(2 * nsteps, h / 2);

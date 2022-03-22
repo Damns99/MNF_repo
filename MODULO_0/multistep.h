@@ -65,7 +65,7 @@ namespace multistep {
 				std::cout << std::endl;
 				std::cout << "b :";
 				for(auto& ii: b) std::cout << " \t" << ii;
-				std::cout << std::endl;
+				std::cout << std::endl << std::endl;
 			}
 			
 			void clear() {
@@ -129,7 +129,7 @@ namespace multistep {
 				}
 				nsteps -= p;
 				
-				std::cout << "Starting calculation of " << nsteps << " points with step " << h << std::endl;
+				std::cout << "Multistep: " << nsteps << " points with step " << h << std::endl;
 				x.reserve(nsteps + n_max);
 				y.reserve(nsteps + n_max);
 				y1.reserve(nsteps + n_max);
@@ -151,8 +151,7 @@ namespace multistep {
 	
 	template <typename... Parameters>
 	void runWithRichardsonError(ExplicitMultistep<Parameters...> ms, double init_x, std::vector<double> & init_y, int nsteps, double h, std::vector<double>& x, std::vector<std::vector<double>>& y, std::vector<std::vector<double>>& y1, std::vector<std::vector<double>>& dy) {
-		std::cout << "Running with Richardson Error Estimation." << std::endl;
-		std::cout << "It may take a while..." << std::endl;
+		std::cout << "Running with Richardson Error Estimation. It may take a while..." << std::endl;
 		ms.clear();
 		ms.setInit(init_x, init_y);
 		auto yh2 = ms.run(2 * nsteps, h / 2);

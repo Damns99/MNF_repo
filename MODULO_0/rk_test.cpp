@@ -32,15 +32,15 @@ int main() {
 	rk.setInit(init_x, init_y);
 	
 	for(int steps = 10; steps <= 10000; steps*=10) {
-		std::cout << steps << " steps : ";
 		double h = 0.01;
 		rk.clear();
 		rk.setInit(init_x, init_y);
 		const auto start = std::chrono::steady_clock::now();
 		std::vector<std::vector<double>> y = rk.run(steps, h);
 		const auto end = std::chrono::steady_clock::now();
-		std::cout << (end - start).count() / 1000000. << " ms" << std::endl;
+		std::cout << steps << " steps : " << (end - start).count() / 1000000. << " ms" << std::endl;
 	}
+	std::cout << std::endl;
 	rk.printToFile();
 	rk.clear();
 	
@@ -50,6 +50,7 @@ int main() {
 	std::vector<std::vector<double>> yh, dyh;
 	rungekutta::runWithRichardsonError(rk, init_x, init_y, nsteps, h, xh, yh, dyh);
 	textIo::textOut("rk_richardson.txt", '\t', '#', "x \t y \t dy", nsteps, false, xh, yh, dyh);
+	std::cout << std::endl;
 	
 	double max_x = 5., var_h = 1.;
 	int n_h = 4;
@@ -81,9 +82,11 @@ int main() {
 		legend->AddEntry(graph[i], legend_entry.c_str(), "p");
 		var_h /= 2.;
 	}
+	std::cout << std::endl;
 	
 	canvas1->SetGrid();
 	multigraph->Draw("A*");
 	legend->Draw();
 	canvas1->SaveAs("rkroot.pdf");
+	std::cout << std::endl;
 }
