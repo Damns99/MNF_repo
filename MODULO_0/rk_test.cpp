@@ -34,6 +34,8 @@ int main() {
 	for(int steps = 10; steps <= 10000; steps*=10) {
 		std::cout << steps << " steps : ";
 		double h = 0.01;
+		rk.clear();
+		rk.setInit(init_x, init_y);
 		const auto start = std::chrono::steady_clock::now();
 		std::vector<std::vector<double>> y = rk.run(steps, h);
 		const auto end = std::chrono::steady_clock::now();
@@ -42,12 +44,11 @@ int main() {
 	rk.printToFile();
 	rk.clear();
 	
-	double h = 0.1;
+	double h = 0.01;
 	int nsteps = 1000;
-	int order = 4; // qual'è? bho?
 	std::vector<double> xh;
 	std::vector<std::vector<double>> yh, dyh;
-	runWithRichardsonError(rk, init_x, init_y, nsteps, h, order, xh, yh, dyh);
+	rungekutta::runWithRichardsonError(rk, init_x, init_y, nsteps, h, xh, yh, dyh);
 	textIo::textOut("rk_richardson.txt", '\t', '#', "x \t y \t dy", nsteps, false, xh, yh, dyh);
 	
 	double max_x = 5., var_h = 1.;

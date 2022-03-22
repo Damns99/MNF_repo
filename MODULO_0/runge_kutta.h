@@ -25,14 +25,16 @@ namespace rungekutta {
 			std::tuple<Parameters...> pars;
 			
 		public:
+			int order;
 			std::vector<double> x;
 			std::vector<std::vector<double>> y;
 			
-			ExplicitRungeKutta(std::vector<std::vector<double>> & aa, std::vector<double> & bb, std::vector<double> & cc) {
+			ExplicitRungeKutta(std::vector<std::vector<double>> & aa, std::vector<double> & bb, std::vector<double> & cc, int o) {
 				for(auto ai: aa) a.push_back(ai);
 				for(auto bi: bb) b.push_back(bi);
 				for(auto ci: cc) c.push_back(ci);
 				s = b.size();
+				order = o;
 				checkSetupConsistency();
 			}
 			
@@ -65,14 +67,13 @@ namespace rungekutta {
 				pars = std::tie(parameters...);
 			}
 			
-			int setInit(double init_x, std::vector<double> & init_y) {
+			void setInit(double init_x, std::vector<double> & init_y) {
 				n_max = 1;
 				n_dim = init_y.size();
 				x.reserve(n_max);
 				x.push_back(init_x);
 				y.reserve(n_max);
 				y.push_back(init_y);
-				return 0;
 			}
 			
 			void step(double h) {
@@ -96,6 +97,7 @@ namespace rungekutta {
 			}
 			
 			std::vector<std::vector<double>> run(int nsteps, double h) {
+				std::cout << "Starting calculation of " << nsteps << " points with step " << h << std::endl;
 				x.reserve(nsteps + n_max);
 				y.reserve(nsteps + n_max);
 				for(int i = 0; i < nsteps; i++) step(h);
@@ -112,11 +114,11 @@ namespace rungekutta {
 		std::vector<std::vector<double>> a = {{0.5}, {0., 0.5}, {0., 0., 1.}};
 		std::vector<double> b = {1./6, 1./3, 1./3, 1./6};
 		std::vector<double> c = {0., 0.5, 0.5, 1.};
-		return ExplicitRungeKutta<Parameters...>(a, b, c);
+		return ExplicitRungeKutta<Parameters...>(a, b, c, 4);
 	}
 	
 	template <typename... Parameters>
-	void runWithRichardsonError(ExplicitRungeKutta<Parameters...> rk, double init_x, std::vector<double> & init_y, int nsteps, double h, int order, std::vector<double>& x, std::vector<std::vector<double>>& y, std::vector<std::vector<double>>& dy) {
+	void runWithRichardsonError(ExplicitRungeKutta<Parameters...> rk, double init_x, std::vector<double> & init_y, int nsteps, double h, std::vector<double>& x, std::vector<std::vector<double>>& y, std::vector<std::vector<double>>& dy) {
 		std::cout << "Running with Richardson Error Estimation." << std::endl;
 		std::cout << "It may take a while..." << std::endl;
 		rk.clear();
@@ -129,7 +131,7 @@ namespace rungekutta {
 		std::vector<std::vector<double>> yhh;
 		for(int i = 0; i < nsteps + 1; i++) {
 			std::vector<double> tmp_rich;
-			for(int j = 0; j < y[0].size(); j++) tmp_rich.push_back((yh2[2 * i][j] - y[i][j]) / (pow(2, order) - 1));
+			for(int j = 0; j < y[0].size(); j++) tmp_rich.push_back((yh2[2 * i][j] - y[i][j]) / (pow(2, rk.order) - 1));
 			dy.push_back(tmp_rich);
 		}
 	}

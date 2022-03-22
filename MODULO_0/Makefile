@@ -5,15 +5,20 @@ ROOT_CONFIG:=-pthread -std=c++2a -m64 -I/home/damns99/Programs/ROOT/builddir/inc
 
 all: test
 
-rkms_test: rkms_test.cpp runge_kutta.h
-	g++ -std=c++2a -I ../shared_libs -o rkms_test rkms_test.cpp -lm -O2 $(ROOT_CONFIG)
+rk_test: rk_test.cpp runge_kutta.h
+	g++ -std=c++2a -I ../shared_libs -o rk_test rk_test.cpp -lm -O2 $(ROOT_CONFIG)
 
-test: rkms_test
-	./rkms_test
+ms_test: ms_test.cpp multistep.h runge_kutta.h
+	g++ -std=c++2a -I ../shared_libs -o ms_test ms_test.cpp -lm -O2 $(ROOT_CONFIG)
+
+test: rk_test ms_test
+	./rk_test
+	./ms_test
 
 clean:
-	rm rkms_test
-	rm rk.txt
-	rm rk_richardson.txt
-	rm rkroot*.txt
+	rm rk_test
+	rm rk*txt
 	rm rkroot.pdf
+	rm ms_test
+	rm ms*.txt
+	rm msroot.pdf
