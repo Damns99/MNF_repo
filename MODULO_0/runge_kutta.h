@@ -3,8 +3,12 @@
 
 #include <vector>
 #include <tuple>
-#include "text_io.h"
 #include <iostream>
+#include <cassert>
+
+#include "text_io.h"
+
+#define RK_ASSERT_EPS 5e-16
 
 namespace rungekutta {
 	
@@ -29,6 +33,13 @@ namespace rungekutta {
 				for(auto bi: bb) b.push_back(bi);
 				for(auto ci: cc) c.push_back(ci);
 				s = b.size();
+				checkSetupConsistency();
+			}
+			
+			void checkSetupConsistency() {
+				double bsum = -1.;
+				for(auto& ii: b) bsum += ii;
+				assert(bsum * bsum <= RK_ASSERT_EPS * RK_ASSERT_EPS);
 			}
 			
 			void printTableau() {

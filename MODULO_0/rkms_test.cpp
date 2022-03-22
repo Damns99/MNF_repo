@@ -2,14 +2,16 @@
 #include <vector>
 #include <chrono>
 #include <math.h>
+#include <string>
 
 #include "runge_kutta.h"
 
-/* Build ROOT with c++17 o c++2a
 #include <TGraph.h>
 #include <TMultiGraph.h>
 #include <TCanvas.h>
-*/
+#include <TAxis.h>
+#include <TFrame.h>
+#include <TLegend.h>
 
 std::vector<double> f(std::vector<double> y, double x, int a, int b) {
 	std::vector<double> res;
@@ -47,22 +49,40 @@ int main() {
 	std::vector<std::vector<double>> yh, dyh;
 	runWithRichardsonError(rk, init_x, init_y, nsteps, h, order, xh, yh, dyh);
 	textIo::textOut("rk_richardson.txt", '\t', '#', "x \t y \t dy", nsteps, false, xh, yh, dyh);
-	/*
-	TCanvas* canvas1 = new TCanvas("canvas1", "Canvas1");
-	TMultiGraph* multigraph = new TMultiGraph();
 	
-	double max_x = 10.;
-	for(double var_h = 1.; var_h >= 0.001; var_h++) {
+	double max_x = 5., var_h = 1.;
+	int n_h = 4;
+	TCanvas* canvas1 = new TCanvas("canvas1", "Canvas1", 600, 400);
+	TGraph* graph[n_h];
+	TMultiGraph* multigraph = new TMultiGraph();
+	TLegend* legend = new TLegend(0.75, 0.75, 0.85, 0.85);
+	
+	for(int i = 0; i < n_h; i++) {
 		int steps = max_x / var_h;
 		rk.clear();
 		rk.setInit(init_x, init_y);
-		auto y_var_h = rk.run(steps, var_h);
+		auto y_var_h_tmp = rk.run(steps, var_h);
 		auto x_var_h = rk.x;
-		TGraph* graph1 = new TGraph(x_var_h.size(), x_var_h.data(), y_var_h[0].data());
-		multigraph->Add(graph1);
+		std::vector<double> y_var_h;
+		for(auto& ii: y_var_h_tmp) for(auto& jj: ii) y_var_h.push_back(jj);
+		
+		std::ostringstream string_stream;
+		string_stream << "rkroot" << i << ".txt";
+		std::string filename = string_stream.str();
+		rk.printToFile(filename);
+		
+		graph[i] = new TGraph(x_var_h.size(), x_var_h.data(), y_var_h.data());
+		graph[i]->SetMarkerColor(i+1);
+		multigraph->Add(graph[i]);
+		std::ostringstream string_stream2;
+		string_stream2 << "h = " << var_h;
+		std::string legend_entry = string_stream2.str();
+		legend->AddEntry(graph[i], legend_entry.c_str(), "p");
+		var_h /= 2.;
 	}
 	
-    canvas1->cd();
-	multigraph->Draw();
-	*/
+	canvas1->SetGrid();
+	multigraph->Draw("A*");
+	legend->Draw();
+	canvas1->SaveAs("rkroot.pdf");
 }
