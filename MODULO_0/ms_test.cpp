@@ -21,7 +21,7 @@ std::vector<double> f(std::vector<double> y, double x, int a, int b) {
 }
 
 int main() {
-	auto ms = multistep::AB2<int, int>();
+	auto ms = multistep::AM2<int, int>();
 	ms.print();
 	
 	int p1 = 2, p2 = 1;

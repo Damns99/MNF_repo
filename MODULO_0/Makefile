@@ -16,9 +16,9 @@ test: rk_test ms_test
 	./ms_test
 
 clean:
-	rm rk_test
-	rm rk*txt
-	rm rkroot.pdf
-	rm ms_test
-	rm ms*.txt
-	rm msroot.pdf
+	rm -f rk_test
+	rm -f rk*txt
+	rm -f rkroot.pdf
+	rm -f ms_test
+	rm -f ms*.txt
+	rm -f msroot.pdf

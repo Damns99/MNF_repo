@@ -15,19 +15,21 @@ namespace rungekutta {
 	template <typename... Parameters>
 	class ExplicitRungeKutta {
 		private:
-			std::vector<std::vector<double>> a;
-			std::vector<double> b;
-			std::vector<double> c;
 			int s;
-			int n_max;
 			int n_dim;
 			std::vector<double> (*eq)(std::vector<double>, double, Parameters...);
 			std::tuple<Parameters...> pars;
 			
 		public:
+			std::vector<std::vector<double>> a;
+			std::vector<double> b;
+			std::vector<double> c;
 			int order;
+			int n_max;
 			std::vector<double> x;
 			std::vector<std::vector<double>> y;
+			
+			ExplicitRungeKutta() {;}
 			
 			ExplicitRungeKutta(std::vector<std::vector<double>> & aa, std::vector<double> & bb, std::vector<double> & cc, int o) {
 				for(auto ai: aa) a.push_back(ai);
@@ -81,9 +83,7 @@ namespace rungekutta {
 				std::vector<std::vector<double>> k;
 				for(int j = 0; j < s; j++) {
 					std::vector<double> tmpy_ = y[n_max - 1];
-					for(int jj = 0; jj < j; jj++) for(int i = 0; i < n_dim; i++) {
-						tmpy_[i] += h * a[j-1][jj] * k[jj][i];
-					}
+					for(int jj = 0; jj < j; jj++) for(int i = 0; i < n_dim; i++) tmpy_[i] += h * a[j-1][jj] * k[jj][i];
 					k.push_back(std::apply(eq, std::tuple_cat(std::make_tuple(tmpy_, x[n_max - 1] + c[j] * h), pars)));
 				}
 				for(int i = 0; i < n_dim; i++) {
