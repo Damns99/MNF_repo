@@ -11,9 +11,15 @@ rk_test: rk_test.cpp runge_kutta.h
 ms_test: ms_test.cpp multistep.h runge_kutta.h
 	g++ -std=c++2a -I ../shared_libs -o ms_test ms_test.cpp -lm -O2 $(ROOT_CONFIG)
 
-test: rk_test ms_test
+comparison: comparison.cpp  multistep.h runge_kutta.h
+	g++ -std=c++2a -I ../shared_libs -o comparison comparison.cpp -lm -O2 $(ROOT_CONFIG)
+
+compile: rk_test ms_test comparison
+
+test: rk_test ms_test comparison
 	./rk_test
 	./ms_test
+	./comparison
 
 clean:
 	rm -f rk_test
@@ -22,3 +28,5 @@ clean:
 	rm -f ms_test
 	rm -f ms*.txt
 	rm -f msroot.pdf
+	rm -f comparison
+	rm -f comparison.pdf
