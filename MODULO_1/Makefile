@@ -19,3 +19,7 @@ libbox_muller.so: box_muller.o
 
 test: bootstrap_test
 	./bootstrap_test
+
+clean:
+	rm -f bootstrap_test
+	rm -f bootstrap*.pdf
