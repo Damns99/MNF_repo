@@ -11,8 +11,14 @@ all: test
 timing_test: timing_test.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -Wl,-rpath=. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o timing_test timing_test.cpp -lm -lran2
 
-test: timing_test
+metro_ising: metro_ising.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -Wl,-rpath=. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o metro_ising metro_ising.cpp -lm -O2 $(ROOT_CONFIG) -lran2
+
+test: timing_test metro_ising
 	./timing_test
+	./metro_ising
 
 clean:
 	rm -f timing_test
+	rm -f metro_ising
+	rm -f snapshot.png

@@ -34,7 +34,7 @@ tridiag_unit_test: tridiag_unit_test.cpp $(LIBPATH)/libtridiag.so
 
 test: text_io_unit_test cmdline_parser_unit_test vec_hist_unit_test ran2_unit_test myfft_unit_test tridiag_unit_test
 	./text_io_unit_test
-	./cmdline_parser_unit_test 31 -b 23.456 23.456 23.456 -c c
+	./cmdline_parser_unit_test 31 -b 23.456 23.456 23.456 -c c -s string
 	./vec_hist_unit_test
 	./ran2_unit_test
 	./myfft_unit_test

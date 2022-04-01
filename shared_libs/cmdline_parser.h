@@ -10,7 +10,7 @@
 #include <vector>
 #include <variant>
 
-#define CMDLINE_TYPES(_) _(char), _(short), _(int), _(long), _(unsigned), _(float), _(double)
+#define CMDLINE_TYPES(_) _(char), _(short), _(int), _(long), _(unsigned), _(float), _(double), _(std::string)
 #define CMDLINE_PARAMETER_TYPES(T) details::CmdlineParameter<T>
 #define CMDLINE_POSSIBLE_TYPES CMDLINE_TYPES(CMDLINE_PARAMETER_TYPES)
 

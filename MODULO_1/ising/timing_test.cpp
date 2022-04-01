@@ -5,10 +5,10 @@
 #include <math.h>
 #include <cassert>
 
-#define SEED -42
-#define LENGTH 128
-#define REPETITIONS 10000000
-#define LOOPS 10
+constexpr int SEED = -42;
+constexpr int LENGTH = 128;
+constexpr int REPETITIONS = 1000000;
+constexpr int LOOPS = 10;
 
 #define pacman(I, L) (((I) >= 0) ? ((I) % (L)) : ((L) - (((L) - (I)) % (L))))
 
@@ -18,7 +18,13 @@
 
 #define tolink(I, J, L) (I) * (L) + (J)
 
-#define MAX_LENGTH 65536 // 2^16
+#define tolink2(V, I, D) (V).data[(V).links[(V).links_per_element * (I) + (D)]]
+
+constexpr int MAX_LENGTH = 65536; // 2^16
+
+inline int pacman2(int i, int l) {
+	return i >= 0 ? i % l : l - ((l - i) % l);
+}
 
 class my_vector {
 	public:
@@ -244,6 +250,23 @@ int main() {
 	{
 		double m = 0., m2 = 0.;
 		for (int iii = 0; iii < LOOPS; iii++) {
+			lattice_arrays vec(LENGTH, 1.);
+			ran2::RandomGenerator gen(SEED);
+			const auto start = std::chrono::steady_clock::now();
+			for(int i = 0; i < REPETITIONS; i++) {
+				int r = gen.randL(0, vec.length);
+				vec.data[r] = vec.data[r] + (tolink2(vec, r, 0) + tolink2(vec, r, 1)) / 100.;
+			}
+			const auto end = std::chrono::steady_clock::now();
+			double elapsed = (end - start).count() / 1000000.;
+			m += elapsed / LOOPS;
+			m2 += elapsed * elapsed / LOOPS;
+		}
+		std::cout << "lattice_arrays_m : \t" << m << " +- " << sqrt(m2 - m * m) / sqrt(LOOPS - 1) << " ms" << std::endl;
+	}
+	{
+		double m = 0., m2 = 0.;
+		for (int iii = 0; iii < LOOPS; iii++) {
 			lattice_static vec(LENGTH, 1.);
 			ran2::RandomGenerator gen(SEED);
 			const auto start = std::chrono::steady_clock::now();
@@ -363,6 +386,6 @@ int main() {
 		}
 		std::cout << "pointer links : \t" << m << " +- " << sqrt(m2 - m * m) / sqrt(LOOPS - 1) << " ms" << std::endl;
 	}
-	std::cout << "I choose lattice_arrays." << std::endl;
+	std::cout << "I choose lattice_arrays_m." << std::endl;
 	std::cout << std::endl;
 }
