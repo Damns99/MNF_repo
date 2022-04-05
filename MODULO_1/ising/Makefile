@@ -15,10 +15,12 @@ metro_ising: metro_ising.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -Wl,-rpath=. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o metro_ising metro_ising.cpp -lm -O2 $(ROOT_CONFIG) -lran2
 
 test: timing_test metro_ising
-	./timing_test
+	# ./timing_test
 	./metro_ising
 
 clean:
 	rm -f timing_test
 	rm -f metro_ising
-	rm -f snapshot.png
+	rm -f -r measures*
+	rm -f lattice*.txt
+	rm -f rand_*.txt
