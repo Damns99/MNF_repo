@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 
 #include "cmdline_parser.h"
 
-#include "lattice.h"
+#include "cuda_lattice.cuh"
 
 #include <TError.h>
 
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 	
     parser.kickOff(argv[0]);
 	
-	auto lattice = Lattice2D(length, geom, beta, extrafield, seed, init_mode, infilename);
+	createLattice(length, geom, beta, extrafield, seed, init_mode, infilename);
 	
 	std::string folder = "measures" + currentTimeDate();
 	fs::create_directory(folder);
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 	int lognmeas = log10(nmeas) + 1;
 	if(do_snapshots) {
 		std::string snapname = "snapshot" + makeFixedLength(0, lognmeas) + ".png";
-		lattice.snapshot(snapname);
+		snapshot(snapname);
 	}
 	
 	std::ofstream measfile;
@@ -85,19 +85,22 @@ int main(int argc, char* argv[]) {
 	}
 	int percent = 0;
 	
+	cudaInitFromLattice();
 	for(int ii = 0; ii < nmeas; ii++) {
 		printPercent(ii, percent, nmeas);
-		int acc = 0;
-		for(int jj = 0; jj < ncycles; jj++) for(int kk = 0; kk < length * length; kk ++) acc += lattice.updateMetropolis();
-		measfile << lattice.energy << '\t' << lattice.magnetization << '\t' << 1. * acc / ncycles << '\n';
+		for(int jj = 0; jj < ncycles; jj++) cudaUpdateMetropolis();
+		cudaMeasureEnergyMagnetization();
+		measfile << energy << '\t' << magnetization << '\t' << 0. << '\n';
 		if(do_snapshots) {
 			std::string snapname = "snapshot" + makeFixedLength(ii + 1, lognmeas) + ".png";
-			lattice.snapshot(snapname);
+			cudaRetrieveLattice();
+			snapshot(snapname);
 		}
 	}
+	cudaDestroyLattice();
 	
 	measfile.close();
-	lattice.save(outfilename);
+	save(outfilename);
 	
 	std::cout << std::endl;
 	return 0;

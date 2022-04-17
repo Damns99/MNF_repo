@@ -11,9 +11,6 @@ NVCC_ROOT_CONFIG:= -Xcompiler -pthread -m64 -I/home/damns99/Programs/ROOT/buildd
 
 all: test
 
-timing_test: timing_test.cpp
-	g++ -std=c++2a -I $(INCLUDEPATH) -Wl,-rpath=. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o timing_test timing_test.cpp -lm -lran2
-
 lattice.o: lattice.h lattice.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -c -fpic lattice.cpp
 
@@ -35,23 +32,11 @@ metro_ising: metro_ising.cpp liblattice.so
 cuda_metro_ising: cuda_metro_ising.cu libcuda_lattice.so
 	/usr/local/cuda-11.4/bin/nvcc -arch=sm_75 -gencode=arch=compute_75,code=sm_75 -std=c++17 -I $(INCLUDEPATH) -L . -Xcompiler \"-Wl,-rpath=.\" -L $(LIBPATH) -Xcompiler \"-Wl,-rpath=$(LIBPATH)\" -o cuda_metro_ising cuda_metro_ising.cu -lm -O2 $(NVCC_ROOT_CONFIG) -lran2 -lcuda_lattice
 
-test_cuda: test_cuda.cu
-	/usr/local/cuda-11.4/bin/nvcc -g -lineinfo -Xcompiler -rdynamic -arch=sm_75 -gencode=arch=compute_75,code=sm_75 -std=c++17 -o test_cuda test_cuda.cu
-
-test_cuda2: test_cuda2.cu
-	/usr/local/cuda-11.4/bin/nvcc -g -lineinfo -Xcompiler -rdynamic -arch=sm_75 -gencode=arch=compute_75,code=sm_75 -std=c++17 -o test_cuda2 test_cuda2.cu
-
-test: timing_test metro_ising cuda_metro_ising test_cuda test_cuda2
-	# ./timing_test
+test: metro_ising cuda_metro_ising
 	# ./metro_ising
 	# ./cuda_metro_ising
-	# ./test_cuda
-	# ./test_cuda2
 
 clean:
-	rm -f timing_test
-	rm -f test_cuda
-	rm -f test_cuda2
 	rm -f metro_ising
 	rm -f cuda_metro_ising
 	rm -f -r measures*

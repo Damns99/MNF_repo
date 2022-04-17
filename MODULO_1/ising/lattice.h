@@ -69,6 +69,4 @@ class Lattice2D {
 		
 };
 
-void cudaSquareUpdateMetropolis(Lattice2D* lattice);
-
 #endif

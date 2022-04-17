@@ -11,6 +11,7 @@ namespace fs = std::filesystem;
 #include "cmdline_parser.h"
 
 #include "lattice.h"
+#include "cuda_lattice.cuh"
 
 #include <TError.h>
 
@@ -85,16 +86,21 @@ int main(int argc, char* argv[]) {
 	}
 	int percent = 0;
 	
+	CudaLattice2D c_lattice;
+	c_lattice.cudaInitFromLattice(&lattice);
 	for(int ii = 0; ii < nmeas; ii++) {
 		printPercent(ii, percent, nmeas);
-		int acc = 0;
-		for(int jj = 0; jj < ncycles; jj++) for(int kk = 0; kk < length * length; kk ++) acc += lattice.updateMetropolis();
-		measfile << lattice.energy << '\t' << lattice.magnetization << '\t' << 1. * acc / ncycles << '\n';
+		for(int jj = 0; jj < ncycles; jj++) c_lattice.cudaUpdateMetropolis();
+		double energy, magnetization;
+		c_lattice.cudaMeasureEnergyMagnetization(&energy, &magnetization);
+		measfile << energy << '\t' << magnetization << '\t' << 0. << '\n';
 		if(do_snapshots) {
 			std::string snapname = "snapshot" + makeFixedLength(ii + 1, lognmeas) + ".png";
+			c_lattice.cudaRetrieveLattice(&lattice);
 			lattice.snapshot(snapname);
 		}
 	}
+	c_lattice.cudaDestroyLattice();
 	
 	measfile.close();
 	lattice.save(outfilename);

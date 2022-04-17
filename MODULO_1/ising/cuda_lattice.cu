@@ -1,54 +1,108 @@
-#include "lattice.h"
-
+#include "cuda_lattice.cuh"
 #include <cuda.h>
+#include <stdio.h>
 
-__global__ void squareMetropolisStepGPU(Lattice2D* lattice, double* rr, int size, int bw, int dead_spin) {
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
-	if(index >= size) return;
-	int x = 2 * index + ((2 * index / lattice->length + bw) % 2);
-	if(x == dead_spin) return; // avoid loops!
-	int newspin = - lattice->spin[x];
-	double denergy = -2. * newspin * lattice->extrafield;
-	for (int j = 0; j < lattice->links_per_spin; j++) {
-		denergy += -2. * JACC * newspin * lattice->spin[lattice->links[lattice->links_per_spin * x + j]];
+__global__ void calculateEnergyMagnetizatonGPU(CudaLattice2D lattice) {
+	*lattice.d_energy = 0.;
+	*lattice.d_magnetization = 0.;
+	for (int i = 0; i < lattice.length * lattice.length; i++) {
+		for (int j = 0; j < lattice.links_per_spin; j++) {
+			*lattice.d_energy += - JACC / 2. * lattice.d_spin[i] * lattice.d_spin[lattice.d_links[lattice.links_per_spin * i + j]] / (1. * lattice.length * lattice.length);
+		}
+		*lattice.d_energy += - lattice.d_spin[i] * lattice.extrafield / (1. * lattice.length * lattice.length);
+		*lattice.d_magnetization += lattice.d_spin[i] / (1. * lattice.length * lattice.length);
 	}
-	double r = exp(-lattice->beta * denergy);
-	if (rr[index] < r) lattice->spin[x] = newspin;
 }
 
-void cudaSquareUpdateMetropolis(Lattice2D* lattice) { // accettanza?
-	assert(lattice->length % 2 == 0);
-	int nbw = lattice->length * lattice->length / 2;
-	int sizedbl = nbw * sizeof(double);
-	double rrb[nbw], rrw[nbw];
-	for(int ii = 0; ii < nbw; ii++) {
-		rrb[ii] = lattice->gen.randF();
-		rrw[ii] = lattice->gen.randF();
+__global__ void squareMetropolisStepGPU(CudaLattice2D lattice, int bw, int dead_spin) {
+	int index = threadIdx.x + blockIdx.x * blockDim.x;
+	if(index >= lattice.nbw) return;
+	int x = 2 * index + ((2 * index / lattice.length + bw) % 2);
+	if(x == dead_spin) return; // avoid loops!
+	int newspin = - lattice.d_spin[x];
+	double denergy = -2. * newspin * lattice.extrafield;
+	for (int j = 0; j < lattice.links_per_spin; j++) {
+		denergy += -2. * JACC * newspin * lattice.d_spin[lattice.d_links[lattice.links_per_spin * x + j]];
 	}
-	int dead_spin = lattice->gen.randL(0, lattice->length * lattice->length);
+	double r = exp(-lattice.beta * denergy);
+	if (lattice.d_rr[2 * index + bw] < r) lattice.d_spin[x] = newspin;
+}
+
+__host__ CudaLattice2D::CudaLattice2D() {
+	;
+}
+
+__host__ CudaLattice2D::~CudaLattice2D() {
+	;
+}
+
+__host__ void CudaLattice2D::cudaInitFromLattice(Lattice2D* h_lattice) {
+	assert(h_lattice->length % 2 == 0 && h_lattice->links_per_spin == 4);
+	length = h_lattice->length;
+	links_per_spin = h_lattice->links_per_spin;
+	beta = h_lattice->beta;
+	extrafield = h_lattice->extrafield;
+	nbw = length * length / 2;
+	nthreads = nbw > 256 ? 256 : nbw;
+	nblocks = (nbw - 1) / nthreads + 1;
+	gen = h_lattice->gen;
 	
-	double* d_rrb;
-	double* d_rrw;
-	Lattice2D* d_lattice;
-	cudaMalloc((void **)&d_rrb, sizedbl);
-	cudaMalloc((void **)&d_rrw, sizedbl);
-	cudaMalloc((void **)&d_lattice, sizeof(Lattice2D));
+	int device_number;
+	gpuErrchk(cudaGetDevice(&device_number));
+	std::cout << "device:" << device_number << std::endl;
 	
-	cudaMemcpy(d_rrb, rrb, sizedbl, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_rrw, rrw, sizedbl, cudaMemcpyHostToDevice);
-	cudaMemcpy(d_lattice, lattice, sizeof(Lattice2D), cudaMemcpyHostToDevice);
+	size_t totsize;
+	totsize = length * length * (1 + links_per_spin) * sizeof(int) + (2 * nbw + 2) * sizeof(double);
+	gpuErrchk(cudaDeviceSetLimit(cudaLimitStackSize, totsize));
 	
-	int nthreads = nbw > 256 ? 256 : nbw;
-	int nblocks = (nbw - 1) / nthreads + 1;
-	squareMetropolisStepGPU<<<nblocks,nthreads>>>(d_lattice, d_rrb, nbw, 0, dead_spin);
-	cudaDeviceSynchronize();
-	squareMetropolisStepGPU<<<nblocks,nthreads>>>(d_lattice, d_rrw, nbw, 1, dead_spin);
-	cudaDeviceSynchronize();
+	gpuErrchk(cudaMalloc((void **)&d_spin, length * length * sizeof(int)));
+	gpuErrchk(cudaMalloc((void **)&d_links, length * length * links_per_spin * sizeof(int)));
+	gpuErrchk(cudaMalloc((void **)&d_rr, 2 * nbw * sizeof(double)));
+	gpuErrchk(cudaMalloc((void **)&d_energy, sizeof(double)));
+	gpuErrchk(cudaMalloc((void **)&d_magnetization, sizeof(double)));
+	gpuErrchk(cudaMemcpy(d_spin, &h_lattice->spin, length * length * sizeof(int), cudaMemcpyHostToDevice));
+	gpuErrchk(cudaMemcpy(d_links, &h_lattice->links, length * length * links_per_spin * sizeof(int), cudaMemcpyHostToDevice));
+	gpuErrchk(cudaMemcpy(d_energy, &h_lattice->energy, sizeof(double), cudaMemcpyHostToDevice));
+	gpuErrchk(cudaMemcpy(d_magnetization, &h_lattice->magnetization, sizeof(double), cudaMemcpyHostToDevice));
+}
+
+__host__ void CudaLattice2D::cudaRetrieveLattice(Lattice2D* h_lattice) {
+	h_lattice->length = length;
+	h_lattice->links_per_spin = links_per_spin;
+	h_lattice->beta = beta;
+	h_lattice->extrafield = extrafield;
+	h_lattice->gen = gen;
 	
-	cudaMemcpy(lattice, d_lattice, sizeof(Lattice2D), cudaMemcpyDeviceToHost);
-	lattice->calculateEnergyMagnetizaton();
+	gpuErrchk(cudaMemcpy(&h_lattice->spin, d_spin, length * length * sizeof(int), cudaMemcpyDeviceToHost));
+	gpuErrchk(cudaMemcpy(&h_lattice->links, d_links, length * length * links_per_spin * sizeof(int), cudaMemcpyDeviceToHost));
+	gpuErrchk(cudaMemcpy(&h_lattice->energy, d_energy, sizeof(double), cudaMemcpyDeviceToHost));
+	gpuErrchk(cudaMemcpy(&h_lattice->magnetization, d_magnetization, sizeof(double), cudaMemcpyDeviceToHost));
+}
+
+__host__ void CudaLattice2D::cudaDestroyLattice() {
+	gpuErrchk(cudaFree(d_spin));
+	gpuErrchk(cudaFree(d_links));
+	gpuErrchk(cudaFree(d_rr));
+	gpuErrchk(cudaFree(d_energy));
+	gpuErrchk(cudaFree(d_magnetization));
+	cudaDeviceReset();
+}
+
+__host__ void CudaLattice2D::cudaMeasureEnergyMagnetization(double* h_energy, double* h_magnetization) {
+	calculateEnergyMagnetizatonGPU<<<1,1>>>(*this);
+	gpuErrchk(cudaDeviceSynchronize());
+	gpuErrchk(cudaMemcpy(h_energy, d_energy, sizeof(double), cudaMemcpyDeviceToHost));
+	gpuErrchk(cudaMemcpy(h_magnetization, d_magnetization, sizeof(double), cudaMemcpyDeviceToHost));
+}
+
+__host__ void CudaLattice2D::cudaUpdateMetropolis() {
+	double rr[2 * nbw];
+	for(int ii = 0; ii < 2 * nbw; ii++) rr[ii] = gen.randF();
+	gpuErrchk(cudaMemcpy(d_rr, rr, 2 * nbw * sizeof(double), cudaMemcpyHostToDevice));
+	int dead_spin = gen.randL(0, 2 * nbw);
 	
-	cudaFree(d_rrb);
-	cudaFree(d_rrw);
-	cudaFree(d_lattice);
+	squareMetropolisStepGPU<<<nblocks,nthreads>>>(*this, 0, dead_spin);
+	gpuErrchk(cudaDeviceSynchronize());
+	squareMetropolisStepGPU<<<nblocks,nthreads>>>(*this, 1, dead_spin);
+	gpuErrchk(cudaDeviceSynchronize());
 }

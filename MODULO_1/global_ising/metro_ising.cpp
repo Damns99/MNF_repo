@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     parser.addOptParameter<long>("seed", &seed, -42, "[long] Random number generator (Ran2) seed.");
     parser.addOptParameter<int>("nm", &nmeas, 1024, "[int] Number of measures to take.");
     parser.addOptParameter<int>("nc", &ncycles, 1, "[int] Number of cycles of iteration between each measure.");
-    parser.addOptParameter<int>("len", &length, 10, "[int] Side length of the square lattice.");
+    parser.addOptParameter<int>("len", &length, 10, "[int] Side length of the square ");
     parser.addOptParameter<double>("extf", &extrafield, 0., "[double] Extern magnetic field (in units of JACC).");
     parser.addOptParameter<double>("beta", &beta, 0.3, "[double] One over temperature of the system (in units of JACC).");
     parser.addOptParameter<int>("append", &append, 0, "[int] If != 0 append measures to measfile instead of overwrtiting them.");
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 	
     parser.kickOff(argv[0]);
 	
-	auto lattice = Lattice2D(length, geom, beta, extrafield, seed, init_mode, infilename);
+	createLattice(length, geom, beta, extrafield, seed, init_mode, infilename);
 	
 	std::string folder = "measures" + currentTimeDate();
 	fs::create_directory(folder);
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 	int lognmeas = log10(nmeas) + 1;
 	if(do_snapshots) {
 		std::string snapname = "snapshot" + makeFixedLength(0, lognmeas) + ".png";
-		lattice.snapshot(snapname);
+		snapshot(snapname);
 	}
 	
 	std::ofstream measfile;
@@ -88,16 +88,16 @@ int main(int argc, char* argv[]) {
 	for(int ii = 0; ii < nmeas; ii++) {
 		printPercent(ii, percent, nmeas);
 		int acc = 0;
-		for(int jj = 0; jj < ncycles; jj++) for(int kk = 0; kk < length * length; kk ++) acc += lattice.updateMetropolis();
-		measfile << lattice.energy << '\t' << lattice.magnetization << '\t' << 1. * acc / ncycles << '\n';
+		for(int jj = 0; jj < ncycles; jj++) for(int kk = 0; kk < length * length; kk ++) acc += updateMetropolis();
+		measfile << energy << '\t' << magnetization << '\t' << 1. * acc / ncycles << '\n';
 		if(do_snapshots) {
 			std::string snapname = "snapshot" + makeFixedLength(ii + 1, lognmeas) + ".png";
-			lattice.snapshot(snapname);
+			snapshot(snapname);
 		}
 	}
 	
 	measfile.close();
-	lattice.save(outfilename);
+	save(outfilename);
 	
 	std::cout << std::endl;
 	return 0;
