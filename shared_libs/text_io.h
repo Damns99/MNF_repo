@@ -32,6 +32,9 @@ namespace textIo {
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, T* orig);
 		template <typename T, typename ... Args>
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, T* orig, Args ... args);
+		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, std::vector<double>* dest);
+		template <typename ... Args>
+		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, std::vector<double>* dest, Args ... args);
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<double>& orig);
 		template <typename ... Args>
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<double>& orig, Args ... args);
@@ -51,6 +54,24 @@ namespace textIo {
 			std::stringstream sstr;
 			int endoffile = getBetween(infile, sstr, delim, ignore); 
 			sstr >> dest[ind];
+			if (endoffile == 0) return endoffile;
+			else return textInSlave(infile, delim, ignore, ind, args ...);
+		}
+		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, std::vector<double>* dest) {
+			std::stringstream sstr;
+			int endoffile = getBetween(infile, sstr, delim, ignore);
+			double tmp_;
+			sstr >> tmp_;
+			dest->push_back(tmp_);
+			return endoffile;
+		}
+		template <typename ... Args>
+		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, std::vector<double>* dest, Args ... args) {
+			std::stringstream sstr;
+			int endoffile = getBetween(infile, sstr, delim, ignore);
+			double tmp_;
+			sstr >> tmp_;
+			dest->push_back(tmp_);
 			if (endoffile == 0) return endoffile;
 			else return textInSlave(infile, delim, ignore, ind, args ...);
 		}
@@ -91,7 +112,7 @@ namespace textIo {
 	}
 	
 	template <typename ... Args>
-	void textIn(const std::string filename, char delim = '\t', char ignore = '#', Args ... args) {
+	int textIn(const std::string filename, char delim = '\t', char ignore = '#', Args ... args) {
 		std::ifstream infile;
 		infile.open(filename, std::fstream::in);
 		
@@ -99,6 +120,7 @@ namespace textIo {
 		while(details::textInSlave(infile, delim, ignore, ind, args ...) != 0) ind++;
 		
 		infile.close();
+        return ind;
 	}
 
 	template <typename ... Args>
