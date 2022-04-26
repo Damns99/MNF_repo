@@ -17,6 +17,8 @@ __device__ double d_rr[MAX_LENGTH];
 __device__ double d_energy;
 __device__ double d_magnetization;
 
+__device__ double d_delta_energy[MAX_LENGTH];
+
 __host__ void cudaInitFromLattice();
 
 __host__ void cudaMeasureEnergyMagnetization();

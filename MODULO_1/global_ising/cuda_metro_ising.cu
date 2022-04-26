@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 	
     std::string measfilename, outfilename, infilename;
     long seed;
-    int nmeas, ncycles, length, geom, init_mode, append, do_snapshots;
+    int nmeas, ncycles, length, geom, init_mode, append, do_snapshots, do_timing;
     double extrafield, beta;
 	
 	cmdlineParser::CmdlineParser parser;
@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
     parser.addOptParameter<int>("append", &append, 0, "[int] If != 0 append measures to measfile instead of overwrtiting them.");
     parser.addOptParameter<int>("geom", &geom, SQUARE_GEOM, "[int] Select lattice geomerty: SQUARE = 0, EXAGONAL = 1, TRIANGLUAR = 2");
     parser.addOptParameter<int>("snapshots", &do_snapshots, 0, "[int] If != 0 takes snapshots of the lattice at each measure.");
+    parser.addOptParameter<int>("timing", &do_timing, 0, "[int] If != 0 prints time to take each update cycle and measure.");
 	
     if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
 	
@@ -84,18 +85,23 @@ int main(int argc, char* argv[]) {
 		measfile << "#energy \tmagnetization \tacceptance" << std::endl;
 	}
 	int percent = 0;
+    std::chrono::time_point<std::chrono::steady_clock> start, updated, measured;
 	
 	cudaInitFromLattice();
 	for(int ii = 0; ii < nmeas; ii++) {
 		printPercent(ii, percent, nmeas);
+        if(do_timing) start = std::chrono::steady_clock::now();
 		for(int jj = 0; jj < ncycles; jj++) cudaUpdateMetropolis();
+        if(do_timing) updated = std::chrono::steady_clock::now();
 		cudaMeasureEnergyMagnetization();
+        if(do_timing) measured = std::chrono::steady_clock::now();
 		measfile << energy << '\t' << magnetization << '\t' << 0. << '\n';
 		if(do_snapshots) {
 			std::string snapname = "snapshot" + makeFixedLength(ii + 1, lognmeas) + ".png";
 			cudaRetrieveLattice();
 			snapshot(snapname);
 		}
+        if(do_timing) std::cout << "updated in: " << (updated - start).count() / 1000000. << " measured in: " << (measured - updated).count() / 1000000. << std::endl;
 	}
 	cudaDestroyLattice();
 	

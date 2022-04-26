@@ -41,9 +41,9 @@ void inline printPercent(int ii, int& percent, const int& nmeas) {
 int main(int argc, char* argv[]) {
 	gErrorIgnoreLevel = kWarning;
 	
-    std::string measfilename, outfilename, infilename;
+    std::string measfilename, outfilename, infilename, outfoldername;
     long seed;
-    int nmeas, ncycles, length, geom, init_mode, append, do_snapshots;
+    int nmeas, ncycles, nskip, length, geom, init_mode, append, do_snapshots, do_timing;
     double extrafield, beta;
 	
 	cmdlineParser::CmdlineParser parser;
@@ -51,15 +51,18 @@ int main(int argc, char* argv[]) {
     parser.addPosParameter<std::string>("measfile", &measfilename, "metro_ising_meas.txt", "[std::string] Output file for the measures.");
     parser.addPosParameter<std::string>("outfile", &outfilename, "metro_ising_conf.txt", "[std::string] Output file for the last iteration lattice state.");
 	parser.addOptParameter<std::string>("infile", &infilename, "metro_ising_conf.txt", "[std::string] Intput file for the first iteration lattice state.");
+	parser.addOptParameter<std::string>("folder", &outfoldername, "", "[std::string] Output folder name.");
     parser.addOptParameter<long>("seed", &seed, -42, "[long] Random number generator (Ran2) seed.");
     parser.addOptParameter<int>("nm", &nmeas, 1024, "[int] Number of measures to take.");
     parser.addOptParameter<int>("nc", &ncycles, 1, "[int] Number of cycles of iteration between each measure.");
+    parser.addOptParameter<int>("ns", &nskip, 0, "[int] Number of measures to skip at start.");
     parser.addOptParameter<int>("len", &length, 10, "[int] Side length of the square ");
     parser.addOptParameter<double>("extf", &extrafield, 0., "[double] Extern magnetic field (in units of JACC).");
     parser.addOptParameter<double>("beta", &beta, 0.3, "[double] One over temperature of the system (in units of JACC).");
     parser.addOptParameter<int>("append", &append, 0, "[int] If != 0 append measures to measfile instead of overwrtiting them.");
     parser.addOptParameter<int>("geom", &geom, SQUARE_GEOM, "[int] Select lattice geomerty: SQUARE = 0, EXAGONAL = 1, TRIANGLUAR = 2");
     parser.addOptParameter<int>("snapshots", &do_snapshots, 0, "[int] If != 0 takes snapshots of the lattice at each measure.");
+    parser.addOptParameter<int>("timing", &do_timing, 0, "[int] If != 0 prints time to take each update cycle and measure.");
 	
     if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
 	
@@ -67,7 +70,9 @@ int main(int argc, char* argv[]) {
 	
 	createLattice(length, geom, beta, extrafield, seed, init_mode, infilename);
 	
-	std::string folder = "measures" + currentTimeDate();
+	std::string folder = "measures";
+	if(outfoldername != "") folder += outfoldername;
+	else folder += currentTimeDate();
 	fs::create_directory(folder);
 	fs::current_path(fs::current_path() / folder);
 	
@@ -81,19 +86,27 @@ int main(int argc, char* argv[]) {
 	if (append) measfile.open(measfilename, std::fstream::out | std::fstream::app);
 	else {
 		measfile.open(measfilename, std::fstream::out);
+		measfile << "# nm = " << nmeas << " nc = " << ncycles << " len = " << length << " extf = " << extrafield << " beta = " << beta << std::endl;
 		measfile << "#energy \tmagnetization \tacceptance" << std::endl;
 	}
 	int percent = 0;
+    std::chrono::time_point<std::chrono::steady_clock> start, end;
 	
+	for(int ii = 0; ii < nskip; ii++) {
+		for(int jj = 0; jj < ncycles; jj++) for(int kk = 0; kk < length * length; kk ++) updateMetropolis();
+	}
 	for(int ii = 0; ii < nmeas; ii++) {
 		printPercent(ii, percent, nmeas);
 		int acc = 0;
+        if(do_timing) start = std::chrono::steady_clock::now();
 		for(int jj = 0; jj < ncycles; jj++) for(int kk = 0; kk < length * length; kk ++) acc += updateMetropolis();
-		measfile << energy << '\t' << magnetization << '\t' << 1. * acc / ncycles << '\n';
+        if(do_timing) end = std::chrono::steady_clock::now();
+		measfile << energy << '\t' << magnetization << '\t' << 1. * acc / ncycles / length / length << '\n';
 		if(do_snapshots) {
 			std::string snapname = "snapshot" + makeFixedLength(ii + 1, lognmeas) + ".png";
 			snapshot(snapname);
 		}
+        if(do_timing) std::cout << "updated + measured in: " << (end - start).count() / 1000000. << std::endl;
 	}
 	
 	measfile.close();
