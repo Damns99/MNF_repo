@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     parser.addPosParameter<std::string>("outfile", &outfilename, "metro_ising_conf.txt", "[std::string] Output file for the last iteration lattice state.");
 	parser.addOptParameter<std::string>("infile", &infilename, "metro_ising_conf.txt", "[std::string] Intput file for the first iteration lattice state.");
 	parser.addOptParameter<std::string>("folder", &outfoldername, "", "[std::string] Output folder name.");
-    parser.addOptParameter<long>("seed", &seed, -42, "[long] Random number generator (Ran2) seed.");
+    parser.addOptParameter<long>("seed", &seed, -std::time(NULL), "[long] Random number generator (Ran2) seed.");
     parser.addOptParameter<int>("nm", &nmeas, 1024, "[int] Number of measures to take.");
     parser.addOptParameter<int>("nc", &ncycles, 1, "[int] Number of cycles of iteration between each measure.");
     parser.addOptParameter<int>("ns", &nskip, 0, "[int] Number of measures to skip at start.");

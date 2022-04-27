@@ -11,6 +11,8 @@ NVCC_ROOT_CONFIG := -Xcompiler -pthread -m64 -I/home/damns99/Programs/ROOT/build
 #`root-config --cflags --libs`
 
 BETA_STRIDE_FOLDER := _beta_stride
+LATTICE_LENGTH := 100
+N_MEASURES := 8192
 
 all: test
 
@@ -62,13 +64,16 @@ clean:
 
 beta_stride: metro_ising calc_all plot_measures plot_results
 	rm -f -r measures$(BETA_STRIDE_FOLDER)/* 
-	for ii in 0.300 ; do \
-		./metro_ising -folder $(BETA_STRIDE_FOLDER) -len 100 -nm 1024 -nc 100 -ns 128 -beta $$ii 1 meas_beta_$$ii.txt; \
+	# for ii in 0.300 ; do \
+	for ii in 0.400 ; do \
+		./metro_ising -folder $(BETA_STRIDE_FOLDER) -len $(LATTICE_LENGTH) -nm $(N_MEASURES) -nc 100 -ns 128 -beta $$ii -geom 0 1 meas_beta_$$ii.txt; \
 		./calc_all $(BETA_STRIDE_FOLDER) meas_beta_$$ii.txt $$ii -append 0; \
 		./plot_measures $(BETA_STRIDE_FOLDER) meas_beta_$$ii.txt -outname beta_$$ii; \
 	done
-	for ii in 0.325 0.350 0.375 0.400 0.425 0.450 0.475 0.500 ; do \
-		./metro_ising -folder $(BETA_STRIDE_FOLDER) -len 100 -nm 1024 -nc 100 -ns 128 -beta $$ii 1 meas_beta_$$ii.txt; \
+	# for ii in 0.325 0.350 0.375 0.400 0.425 0.450 0.475 0.500 ; do \
+	# for ii in 0.405 0.410 0.415 0.420 0.425 0.430 0.435 0.440 0.445 0.450 0.455 0.460 0.465 0.470 0.475 0.480 0.485 0.490 0.495 0.500 ; do \
+	for ii in 0.401 0.402 0.403 0.404 0.405 0.406 0.407 0.408 0.409 0.410 0.411 0.412 0.413 0.414 0.415 0.416 0.417 0.418 0.419 0.420 0.421 0.422 0.423 0.424 0.425 0.426 0.427 0.428 0.429 0.430 0.431 0.432 0.433 0.434 0.435 0.436 0.437 0.438 0.439 0.440 0.441 0.442 0.443 0.444 0.445 0.446 0.447 0.448 0.449 0.450 0.451 0.452 0.453 0.454 0.455 0.456 0.457 0.458 0.459 0.460 0.461 0.462 0.463 0.464 0.465 0.466 0.467 0.468 0.469 0.470 0.471 0.472 0.473 0.474 0.475 0.476 0.477 0.478 0.479 0.480 0.481 0.482 0.483 0.484 0.485 0.486 0.487 0.488 0.489 0.490 0.491 0.492 0.493 0.494 0.495 0.496 0.497 0.498 0.499 0.500 ; do \
+		./metro_ising -folder $(BETA_STRIDE_FOLDER) -len $(LATTICE_LENGTH) -nm $(N_MEASURES) -nc 100 -ns 128 -beta $$ii -geom 0 1 meas_beta_$$ii.txt; \
 		./calc_all $(BETA_STRIDE_FOLDER) meas_beta_$$ii.txt $$ii -append 1; \
 		./plot_measures $(BETA_STRIDE_FOLDER) meas_beta_$$ii.txt -outname beta_$$ii; \
 	done

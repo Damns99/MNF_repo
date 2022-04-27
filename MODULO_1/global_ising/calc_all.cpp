@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
 	
     fs::current_path(fs::current_path() / folder);
     int nmeas = textIo::textIn(measfilename, '\t', '#', &energy, &magnetization, &acceptance);
+	for(auto& ii: magnetization) ii = abs(ii);
 	
 	std::string tmp;
 	int lattice_length;
@@ -85,7 +86,7 @@ int main(int argc, char* argv[]) {
 	if (append) outfile.open(outfilename, std::fstream::out | std::fstream::app);
 	else {
 		outfile.open(outfilename, std::fstream::out);
-		outfile << "#x \t<E> \terror \t<M> \terror \td<E>/dT \terror \td<M>/dh \terror \tB(E) \terror \tB(M) \tderror" << std::endl;
+		outfile << "#x \t<E> \terror \t<|M|> \terror \td<E>/dT \terror \td<|M|>/dh \terror \tB(E) \terror \tB(|M|) \tderror" << std::endl;
 	}
 	outfile << x << '\t';
 	outfile << energy_mean << " \t" << energy_error << " \t" << magnetization_mean << " \t" << magnetization_error << '\t';
