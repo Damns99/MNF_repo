@@ -41,22 +41,21 @@ double cumulBinder(const std::vector<double>& vec) {
 
 int main(int argc, char* argv[]) {
 	long seed = -7745;
-    std::string folder = "measures", tmp_folder, outfilename, measfilename;
+    std::string folder, outfilename, measfilename;
     std::vector<double> energy, magnetization, acceptance;
 	double x;
 	int append;
 	
 	cmdlineParser::CmdlineParser parser;
-    parser.addPosParameter<std::string>("folder", &tmp_folder, "0220419144203", "[std::string] Working folder name.");
+    parser.addPosParameter<std::string>("folder", &folder, "0220419144203", "[std::string] Working folder name.");
     parser.addPosParameter<std::string>("measfile", &measfilename, "metro_ising_meas.txt", "[std::string] Input file for the measures.");
     parser.addPosParameter<double>("x", &x, 0, "[double] x coordinate for whatever parameter you are varying.");
     parser.addOptParameter<std::string>("outfile", &outfilename, "results.txt", "[std::string] Output file for the results.");
     parser.addOptParameter<int>("append", &append, 0, "[int] If != 0 append means to measfile instead of overwrtiting them.");
 	if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
     parser.kickOff(argv[0]);
-	folder += tmp_folder;
 	
-    fs::current_path(fs::current_path() / folder);
+    fs::current_path(fs::current_path() / "measures" / folder);
     int nmeas = textIo::textIn(measfilename, '\t', '#', &energy, &magnetization, &acceptance);
 	for(auto& ii: magnetization) ii = abs(ii);
 	

@@ -10,7 +10,7 @@ ROOT_CONFIG := -pthread -m64 -I/home/damns99/Programs/ROOT/builddir/include -L/h
 NVCC_ROOT_CONFIG := -Xcompiler -pthread -m64 -I/home/damns99/Programs/ROOT/builddir/include -L/home/damns99/Programs/ROOT/builddir/lib -lCore -lImt -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lROOTVecOps -lTree -lTreePlayer -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -Xcompiler \"-Wl,-rpath=/home/damns99/Programs/ROOT/builddir/lib\" -Xcompiler -pthread -lm -ldl -Xcompiler -rdynamic
 #`root-config --cflags --libs`
 
-BETA_STRIDE_FOLDER := _beta_stride
+BETA_STRIDE_FOLDER := beta_stride
 LATTICE_LENGTH := 100
 N_MEASURES := 8192
 
@@ -46,7 +46,10 @@ plot_measures: plot_measures.cpp
 plot_results: plot_results.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o plot_results plot_results.cpp -lm -O2 $(ROOT_CONFIG)
 
-test: metro_ising cuda_metro_ising calc_all plot_measures plot_results
+fit_results: fit_results.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o fit_results fit_results.cpp -lm -O2 $(ROOT_CONFIG)
+
+test: metro_ising cuda_metro_ising calc_all plot_measures plot_results fit_results
 	# ./metro_ising
 	# ./cuda_metro_ising
 
@@ -63,7 +66,7 @@ clean:
 	rm -f plot_results
 
 beta_stride: metro_ising calc_all plot_measures plot_results
-	rm -f -r measures$(BETA_STRIDE_FOLDER)/* 
+	rm -f -r measures/$(BETA_STRIDE_FOLDER)/* 
 	# for ii in 0.300 ; do \
 	for ii in 0.400 ; do \
 		./metro_ising -folder $(BETA_STRIDE_FOLDER) -len $(LATTICE_LENGTH) -nm $(N_MEASURES) -nc 100 -ns 128 -beta $$ii -geom 0 1 meas_beta_$$ii.txt; \

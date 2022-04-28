@@ -70,9 +70,10 @@ int main(int argc, char* argv[]) {
 	
 	createLattice(length, geom, beta, extrafield, seed, init_mode, infilename);
 	
-	std::string folder = "measures";
-	if(outfoldername != "") folder += outfoldername;
-	else folder += currentTimeDate();
+	fs::current_path(fs::current_path() / "measures");
+	std::string folder;
+	if(outfoldername != "") folder = outfoldername;
+	else folder = currentTimeDate();
 	fs::create_directory(folder);
 	fs::current_path(fs::current_path() / folder);
 	
