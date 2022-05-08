@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     std::vector<double> x(distsq_max, 0.), y(distsq_max, 0.), dy(distsq_max, 0.);
 	std::vector<int> cy(distsq_max, 0);
 	
-	for(int i = 0; i < len * len; i++) for(int j = i; j < len * len; j++) {
+	/* for(int i = 0; i < len * len; i++) for(int j = i; j < len * len; j++) {
 		int index = distsq(i, j, len, lps);
 		cy[index] += 1;
 		double newvalue = 1. * spin[i] * spin[j];
@@ -145,6 +145,29 @@ int main(int argc, char* argv[]) {
 		y[index] += delta1 / cy[index];
 		double delta2 = newvalue - y[index];
 		dy[index] += delta1 * delta2;
+	} */
+	
+	for(int i = 0; i < len * len; i++) for(int j = 0; j < len; j++) {
+		{
+			int k = ((i / len) * len) + ((i + j) % len);
+			int index = distsq(i, k, len, lps);
+			cy[index] += 1;
+			double newvalue = 1. * spin[i] * spin[k];
+			double delta1 = newvalue - y[index];
+			y[index] += delta1 / cy[index];
+			double delta2 = newvalue - y[index];
+			dy[index] += delta1 * delta2;
+		}
+		{
+			int k = ((((i / len) + j) % len) * len) + (i % len);
+			int index = distsq(i, k, len, lps);
+			cy[index] += 1;
+			double newvalue = 1. * spin[i] * spin[k];
+			double delta1 = newvalue - y[index];
+			y[index] += delta1 / cy[index];
+			double delta2 = newvalue - y[index];
+			dy[index] += delta1 * delta2;
+		}
 	}
 	
 	for(int i = distsq_max - 1; i >= 0; i--) {
