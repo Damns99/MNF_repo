@@ -1,0 +1,21 @@
+
+****************************************
+Minimizer is Minuit / Migrad
+Chi2                      =  6.97744e+08
+NDf                       =         1027
+Edm                       =  1.36152e-12
+NCalls                    =           37
+x0                        =      5.16214   +/-   0.000131708 
+1/csi                     =  -0.00472884   +/-   2.8813e-06  
+
+Covariance Matrix:
+
+            	          x0       1/csi
+x0          	  1.7347e-08 -3.6112e-10
+1/csi       	 -3.6112e-10  8.3019e-12
+
+Correlation Matrix:
+
+            	          x0       1/csi
+x0          	           1    -0.95159
+1/csi       	    -0.95159           1

@@ -1,0 +1,2 @@
+#x 	<E> 	error 	<|M|> 	error 	d<E>/dT 	error 	d<|M|>/dh 	error 	B(E) 	error 	B(|M|) 	derror
+0.4	-1.0902 	0 	0.159861 	0	4.63005 	0 	14.0714 	0	1.0169 	-nan 	2.54246 	-nan

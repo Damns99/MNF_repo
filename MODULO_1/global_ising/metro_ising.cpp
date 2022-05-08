@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 	cmdlineParser::CmdlineParser parser;
     parser.addPosParameter<int>("init_mode", &init_mode, HOT, "[int] Init mode for the first lattice state. HOT = 1, COLD = 2, FROM_FILE = 3");
     parser.addPosParameter<std::string>("measfile", &measfilename, "metro_ising_meas.txt", "[std::string] Output file for the measures.");
-    parser.addPosParameter<std::string>("outfile", &outfilename, "metro_ising_conf.txt", "[std::string] Output file for the last iteration lattice state.");
+    parser.addPosParameter<std::string>("outfile", &outfilename, "metro_ising_conf", "[std::string] Output file for the last iteration lattice state.");
 	parser.addOptParameter<std::string>("infile", &infilename, "metro_ising_conf.txt", "[std::string] Intput file for the first iteration lattice state.");
 	parser.addOptParameter<std::string>("folder", &outfoldername, "", "[std::string] Output folder name.");
     parser.addOptParameter<long>("seed", &seed, -std::time(NULL), "[long] Random number generator (Ran2) seed.");
@@ -106,12 +106,13 @@ int main(int argc, char* argv[]) {
 		if(do_snapshots) {
 			std::string snapname = "snapshot" + makeFixedLength(ii + 1, lognmeas) + ".png";
 			snapshot(snapname);
+			save(outfilename + "-" + std::to_string(ii) + ".txt");
 		}
         if(do_timing) std::cout << "updated + measured in: " << (end - start).count() / 1000000. << std::endl;
 	}
 	
 	measfile.close();
-	save(outfilename);
+	save(outfilename + ".txt");
 	
 	std::cout << std::endl;
 	return 0;
