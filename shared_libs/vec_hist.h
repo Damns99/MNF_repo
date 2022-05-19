@@ -2,12 +2,12 @@
 #define VEC_HIST_H
 
 #include <vector>
+
 namespace vecHist {
 	
 	template <typename T>
 	std::vector<long> makeHist(const std::vector<T>& inputs, unsigned nbins, T a, T b) {
-		std::vector<long> results;
-		results.reserve(nbins);
+		std::vector<long> results(nbins, 0);
 		for(auto element: inputs) {
 			int hash = 1. * (element - a) / (b - a) * nbins;
 			if(hash >= 0 && hash < nbins) results[hash] += 1;

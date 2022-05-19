@@ -31,6 +31,7 @@ namespace ran2 {
 			long ran2Base();
 			
 		public:
+			RandomGenerator();
 			RandomGenerator(long seed);
 			void reset(long seed);
 			

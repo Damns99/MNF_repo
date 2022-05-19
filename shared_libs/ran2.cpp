@@ -1,6 +1,10 @@
 // RAN2 from Numerical Recipes
 #include "ran2.h"
 
+ran2::RandomGenerator::RandomGenerator() {
+	RandomGenerator(42);
+}
+
 ran2::RandomGenerator::RandomGenerator(long seed) {
 	idum = seed < 0 ? seed : -seed;
 }
