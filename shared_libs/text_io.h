@@ -32,6 +32,7 @@ namespace textIo {
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, T* orig);
 		template <typename T, typename ... Args>
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, T* orig, Args ... args);
+		
 		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, std::vector<double>* dest);
 		template <typename ... Args>
 		int textInSlave(std::ifstream & infile, char delim, char ignore, unsigned int ind, std::vector<double>* dest, Args ... args);
@@ -96,7 +97,6 @@ namespace textIo {
 			outfile << orig[ind] << ' '  << delim;
 			return textOutSlave(outfile, delim, ind, args ...);
 		}
-		
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<std::vector<double>>& orig) {
 			int i;
 			for(i = 0; i < orig[0].size() - 1; i++) outfile << orig[ind][i] << ' '  << delim;
