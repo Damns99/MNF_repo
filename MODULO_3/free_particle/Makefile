@@ -1,23 +1,24 @@
 .PHONY: all clean
 SHELL := /bin/bash # Use bash syntax
 
-INCLUDEPATH := ../shared_libs
-LIBPATH := ../shared_libs
+INCLUDEPATH := ../../shared_libs
+LIBPATH := ../../shared_libs
 
 ROOT_CONFIG := -pthread -m64 -I/home/damns99/Programs/ROOT/builddir/include -L/home/damns99/Programs/ROOT/builddir/lib -lCore -lImt -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lROOTVecOps -lTree -lTreePlayer -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -Wl,-rpath=/home/damns99/Programs/ROOT/builddir/lib -pthread -lm -ldl -rdynamic
 #`root-config --cflags --libs`
 
-all: liblattice.so
+all: test
 
-lattice.o: lattice.h lattice.cpp
-	g++ -std=c++2a -I $(INCLUDEPATH) -c -fpic lattice.cpp
+free_particle: free_particle.cpp
+	g++ -std=c++2a -I .. -I $(INCLUDEPATH) -L .. -Wl,-rpath=.. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o free_particle free_particle.cpp ../lattice.o ../root_lattice.o -lm -O2 $(ROOT_CONFIG) -lran2 -llattice
 
-root_lattice.o: lattice.h root_lattice.cpp
-	g++ -std=c++2a -I $(INCLUDEPATH) -c -fpic root_lattice.cpp $(ROOT_CONFIG)
 
-liblattice.so: lattice.o root_lattice.o
-	g++ -shared -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o liblattice.so lattice.o root_lattice.o -lm $(ROOT_CONFIG) -lran2
+test: free_particle
+	#./free_particle
 
 clean:
+	rm -f free_particle
+	rm -f lattice*.txt
+	rm -f rand_*.txt
 	rm -f *.o
 	rm -f *.so
