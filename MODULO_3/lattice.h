@@ -24,7 +24,7 @@ constexpr int FROM_FILE = 3;
 
 typedef int (*Rule)();
 
-inline int y[MAX_LENGTH];
+inline double y[MAX_LENGTH];
 inline int links[MAX_LENGTH];
 inline int length;
 inline int nparticles;

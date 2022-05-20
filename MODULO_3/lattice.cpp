@@ -9,7 +9,7 @@ void createLattice(int len, int n_part, double inv_temp, long seed, int init_mod
 	length = len;
 	assert(length > 0 && 2 * length <= MAX_LENGTH);
 	nparticles = n_part;
-	assert(nparticles > 0 && nparticles <= MAX_PARTICLES && nparticles % length == 0);
+	assert(nparticles > 0 && nparticles <= MAX_PARTICLES && length % nparticles == 0);
 	p_length = length / nparticles;
 	
 	gen = ran2::RandomGenerator(seed);

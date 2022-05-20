@@ -9,11 +9,13 @@ ROOT_CONFIG := -pthread -m64 -I/home/damns99/Programs/ROOT/builddir/include -L/h
 
 all: test
 
-free_particle: free_particle.cpp
+free_particle: free_particle.cpp ../lattice.o ../root_lattice.o
 	g++ -std=c++2a -I .. -I $(INCLUDEPATH) -L .. -Wl,-rpath=.. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o free_particle free_particle.cpp ../lattice.o ../root_lattice.o -lm -O2 $(ROOT_CONFIG) -lran2 -llattice
 
+plot_measures: plot_measures.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o plot_measures plot_measures.cpp -lm -O2 $(ROOT_CONFIG)
 
-test: free_particle
+test: free_particle plot_measures
 	#./free_particle
 
 clean:
@@ -22,3 +24,4 @@ clean:
 	rm -f rand_*.txt
 	rm -f *.o
 	rm -f *.so
+	rm -f plot_measures
