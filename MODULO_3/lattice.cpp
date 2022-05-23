@@ -48,8 +48,8 @@ void calculateObs() {
 		obs2[i] = 0.;
 		for (int j = 0; j < p_length; j++) {
 			int x = p_length * i + j;
-			obs1[i] += y[x] * y[x];
-			obs2[i] += (y[x] - y[links[2 * x + 0]]) * (y[x] - y[links[2 * x + 0]]);
+			obs1[i] += (y[x] * y[x]) / p_length;
+			obs2[i] += ((y[x] - y[links[2 * x + 0]]) * (y[x] - y[links[2 * x + 0]])) / p_length;
 		}
 	}
 }
@@ -102,6 +102,8 @@ void addRule(Rule r, int rep) {
 	nrules++;
 }
 
-void update() {
-	for(int ii = 0; ii < nrules; ii++) for(int jj = 0; jj < repetitions[ii]; jj++) rules[ii]();
+double update() {
+	double acc = 0.;
+	for(int ii = 0; ii < nrules; ii++) for(int jj = 0; jj < repetitions[ii]; jj++) acc += 1. * rules[ii]() / nrules / repetitions[ii];
+	return acc;
 }

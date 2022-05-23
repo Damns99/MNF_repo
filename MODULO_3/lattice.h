@@ -57,6 +57,6 @@ void calculateObs();
 
 void addRule(Rule r, int rep);
 
-void update();
+double update();
 
 #endif

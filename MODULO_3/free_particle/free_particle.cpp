@@ -42,17 +42,17 @@ void inline printPercent(int ii, int& percent, const int& nmeas) {
 // Rules
 
 int updateFreeParticle(int part) {
-	double delta = 1.;
+	double delta = 1., eta = beta / p_length;
 	int x = gen.randL(0, p_length) + part * p_length;
 	double yp = delta * (2. * gen.randF() - 1.) + y[x];
 	double tmp0 = (yp - y[x]), tmp1 = (yp + y[x]), tmp2 = (y[links[2 * x + 0]] + y[links[2 * x + 1]]);
-	double ds = tmp0 * (tmp1 - tmp2);
+	double ds = tmp0 * (tmp1 - tmp2) / eta;
 	double r = exp(-ds);
 	double rr = gen.randF();
 	if (rr < r) {
 		y[x] = yp;
-		obs1[part] += (tmp0 * tmp1) / (1. * p_length);
-		obs2[part] += (ds) / (1. * p_length);
+		obs1[part] += (tmp0 * tmp1) / p_length;
+		obs2[part] += (tmp0 * (tmp1 - tmp2)) / p_length;
 		return 1;
 	}
 	return 0;
@@ -101,6 +101,7 @@ int main(int argc, char* argv[]) {
 	if(outfoldername != "") folder = outfoldername;
 	else folder = currentTimeDate();
 	fs::create_directory(folder);
+	std::cout << "Created folder " << folder << std::endl;
 	fs::current_path(fs::current_path() / folder);
 	
 	int lognmeas = log10(nmeas) + 1;
