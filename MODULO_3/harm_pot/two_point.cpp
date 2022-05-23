@@ -8,8 +8,17 @@
 #include <filesystem>
 namespace fs = std::filesystem;
 
-#include "cmdline_parser.h"
 #include "lattice.h"
+#include "bootstrap.h"
+#include "text_io.h"
+#include "cmdline_parser.h"
+
+double mean(const std::vector<double>& vec) {
+	double s = 0.;
+	int length = vec.size();
+	for(auto& ii: vec) s += ii / length;
+	return s;
+}
 
 double twoPointConnectedCorrelation(int tau, double* yy, int len) {
 	double res = 0., sum = 0.;
@@ -24,12 +33,13 @@ double twoPointConnectedCorrelation(int tau, double* yy, int len) {
 int main(int argc, char* argv[]) {
 	std::string folder, outfilename, conffilename;
 	int nmeas, append;
+	long seed = -434567;
 	
 	cmdlineParser::CmdlineParser parser;
     parser.addPosParameter<std::string>("folder", &folder, "0220520212823", "[std::string] Working folder name.");
     parser.addPosParameter<std::string>("conffile", &conffilename, "harm_pot_conf", "[std::string] Input file name for the configurations.");
     parser.addPosParameter<int>("nmeas", &nmeas, 0, "[int] Number of configurations to analyze.");
-    parser.addOptParameter<std::string>("outfile", &outfilename, "two_point_results.txt", "[std::string] Output file for the results.");
+    parser.addOptParameter<std::string>("outfile", &outfilename, "two_point_results", "[std::string] Output file name for the results.");
     parser.addOptParameter<int>("append", &append, 0, "[int] If != 0 append means to measfile instead of overwrtiting them.");
 	
 	if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
@@ -37,18 +47,36 @@ int main(int argc, char* argv[]) {
 	
 	fs::current_path(fs::current_path() / "measures" / folder);
 	
-	std::ofstream outfile;
-	if (append) outfile.open(outfilename, std::fstream::out | std::fstream::app);
-	else {
-		outfile.open(outfilename, std::fstream::out);
-		outfile << "#part \ttau \ttpccorr" << std::endl;
-	}
+	std::ofstream outfile1;
+	outfile1.open(outfilename + "_tmp.txt", std::fstream::out);
+	outfile1 << "#part \ttau \ttpccorr" << std::endl;
 	for(int ii = 0; ii < nmeas; ii++) {
 		load(conffilename + "-" + std::to_string(ii) + ".txt");
 		for(int pp = 0; pp < nparticles; pp++) for(int jj = 0; jj < p_length / 2; jj++) {
 			double conncorr = twoPointConnectedCorrelation(jj, y + pp * p_length, p_length);
-			outfile << pp << '\t' << jj << '\t' << conncorr << std::endl;
+			outfile1 << pp << '\t' << jj << '\t' << conncorr << std::endl;
 		}
 	}
-	outfile.close();
+	outfile1.close();
+	
+	std::vector<double> particle, tau, tpccorr;
+	int ntemp = textIo::textIn(outfilename + "_tmp.txt", '\t', '#', &particle, &tau, &tpccorr);
+	std::vector<double> ptcpcorr[nparticles][p_length / 2];
+	for(int ii = 0; ii < ntemp; ii++) {
+		ptcpcorr[int(particle[ii])][int(tau[ii])].push_back(tpccorr[ii]);
+	}
+	
+	std::ofstream outfile2;
+	if (append) outfile2.open(outfilename + ".txt", std::fstream::out | std::fstream::app);
+	else {
+		outfile2.open(outfilename + ".txt", std::fstream::out);
+		outfile2 << "#part \ttau \ttpccorr \tdtpccorr" << std::endl;
+	}
+	for(int pp = 0; pp < nparticles; pp++) for(int jj = 0; jj < p_length / 2; jj++) {
+		double c, dc;
+		c = mean(ptcpcorr[pp][jj]);
+		dc = bootstrap::bootstrapError(mean, ptcpcorr[pp][jj], 256, 64, seed *nparticles + jj);
+		outfile2 << pp << '\t' << jj << '\t' << c << '\t' << dc << std::endl;
+	}
+	outfile2.close();
 }

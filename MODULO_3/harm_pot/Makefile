@@ -21,14 +21,18 @@ calc_all: calc_all.cpp
 two_point: two_point.cpp
 	g++ -std=c++2a -I .. -I $(INCLUDEPATH) -L .. -Wl,-rpath=.. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o two_point two_point.cpp ../lattice.o ../root_lattice.o -lm -O2 $(ROOT_CONFIG) -lran2 -llattice
 
-compile: harm_pot plot_measures calc_all two_point
+plot_two_point: plot_two_point.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o plot_two_point plot_two_point.cpp -lm -O2 $(ROOT_CONFIG)
+
+compile: harm_pot plot_measures calc_all two_point plot_two_point
 
 test: compile
 	rm -f -r measures/test
-	./harm_pot 2 -nm 1000 -nc 100 -ns 100 -len 1024 -npart 1 -snapshots 1 -folder test
+	./harm_pot 2 -nm 1000 -nc 100 -ns 100 -len 128 -npart 1 -snapshots 1 -folder test
 	./plot_measures test
 	./calc_all test harm_pot_meas.txt
 	./two_point test harm_pot_conf 1000
+	./plot_two_point test
 
 clean:
 	rm -f harm_pot
