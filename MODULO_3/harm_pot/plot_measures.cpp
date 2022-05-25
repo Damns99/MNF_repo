@@ -66,13 +66,15 @@ int main(int argc, char* argv[]) {
 		graph1[i]->SetLineColor(i + 1);
 		multigraph1->Add(graph1[i]);
 		std::ostringstream string_stream2;
-		string_stream2 << "particle " << i;
+		string_stream2 << "part " << i;
 		std::string legend_entry = string_stream2.str();
 		legend1->AddEntry(graph1[i], legend_entry.c_str(), "p");
 	}
 	c1->SetGrid();
 	multigraph1->SetTitle((folder + ";time;obs1").c_str());
 	multigraph1->Draw("AL*");
+	legend1->SetTextSize(0.02);
+	legend1->Draw();
 	c1->SaveAs((outname + "obs1_plot.pdf").c_str());
 	delete c1;
 	delete multigraph1;
@@ -88,13 +90,15 @@ int main(int argc, char* argv[]) {
 		graph2[i]->SetLineColor(i + 1);
 		multigraph2->Add(graph2[i]);
 		std::ostringstream string_stream2;
-		string_stream2 << "particle " << i;
+		string_stream2 << "part " << i;
 		std::string legend_entry = string_stream2.str();
 		legend2->AddEntry(graph2[i], legend_entry.c_str(), "p");
 	}
 	c2->SetGrid();
 	multigraph2->SetTitle((folder + ";time;obs2").c_str());
 	multigraph2->Draw("AL*");
+	legend2->SetTextSize(0.02);
+	legend2->Draw();
 	c2->SaveAs((outname + "obs2_plot.pdf").c_str());
 	delete c2;
 	delete multigraph2;

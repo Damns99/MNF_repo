@@ -41,10 +41,18 @@ void inline printPercent(int ii, int& percent, const int& nmeas) {
 
 // Rules
 
+int currentIndex = -1;
+int nextIndex() {
+	currentIndex++;
+	if(currentIndex >= p_length) currentIndex = 0;
+	return currentIndex;
+}
+
 int updateHarmPot(int part) {
 	double eta = beta / p_length;
 	double delta = 2. * sqrt(eta);
 	int x = gen.randL(0, p_length) + part * p_length;
+	// int x = nextIndex() + part * p_length;
 	double yp = delta * (2. * gen.randF() - 1.) + y[x];
 	double tmp0 = (yp - y[x]), tmp1 = (yp + y[x]), tmp2 = (y[links[2 * x + 0]] + y[links[2 * x + 1]]);
 	double ds = tmp0 * (tmp1 - tmp2) / eta + tmp0 * tmp1 * eta / 2;

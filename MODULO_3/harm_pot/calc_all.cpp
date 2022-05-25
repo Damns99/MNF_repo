@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
 		do2m = bootstrap::bootstrapError(mean, pobs2[ii], 256, 64, seed * 2 + ii);
 		
 		outfile << x << '\t' << ii << '\t';
-		outfile << o1m << " \t" << do1m << " \t" << o2m << " \t" << do2m << '\t';
+		outfile << o1m << " \t" << do1m << " \t" << o2m << " \t" << do2m << '\t' << std::endl;
 	}
 	outfile.close();
 }

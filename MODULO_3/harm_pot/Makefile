@@ -28,11 +28,11 @@ compile: harm_pot plot_measures calc_all two_point plot_two_point
 
 test: compile
 	rm -f -r measures/test
-	./harm_pot 2 -nm 1000 -nc 100 -ns 100 -len 128 -npart 1 -snapshots 1 -folder test
+	./harm_pot 2 -nm 1000 -nc 1000 -ns 100 -len 1000 -npart 1 -snapshots 1 -folder test -beta 30
 	./plot_measures test
 	./calc_all test harm_pot_meas.txt
 	./two_point test harm_pot_conf 1000
-	./plot_two_point test
+	./plot_two_point test -beta 30
 
 clean:
 	rm -f harm_pot
