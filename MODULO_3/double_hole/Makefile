@@ -28,7 +28,7 @@ compile: double_hole plot_measures calc_all two_point plot_two_point
 
 test: compile
 	rm -f -r measures/test
-	./double_hole 2 -nm 1000 -nc 1000 -ns 100 -len 1000 -npart 1 -snapshots 1 -folder test -beta 3 -lambda 10
+	./double_hole 2 -nm 1000 -nc 1000 -ns 100 -len 1000 -npart 1 -snapshots 1 -folder test -beta 3 -lambda 100 -antiperiodic 0
 	./plot_measures test
 	./calc_all test double_hole_meas.txt
 	./two_point test double_hole_conf 1000

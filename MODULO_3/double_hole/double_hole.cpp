@@ -66,7 +66,7 @@ int updateDoubleHoles(int part) {
 	if (rr < r) {
 		y[x] = yp;
 		obs1[part] += (tmp0 * tmp1) / p_length;
-		obs2[part] += (tmp0 * (tmp1 - tmp2)) / p_length;
+		obs2[part] += 2. * (tmp0 * (tmp1 - tmp2)) / p_length;
 		return 1;
 	}
 	return 0;
