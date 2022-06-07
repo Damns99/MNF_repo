@@ -89,6 +89,9 @@ namespace bound_cond_vecs {
 			int len() const {
 				return length;
 			}
+			int getMode() const {
+				return mode;
+			}
 	};
 }
 
