@@ -8,8 +8,10 @@
 #include "integrators.h"
 #include "wave_plots.h"
 
+// equation: du/dt = df(u)/dx + d2g(u)/dx2
+
 std::vector<bound_cond_vecs::BoundCondVec<double>> f(std::vector<bound_cond_vecs::BoundCondVec<double>> u, double t, bound_cond_vecs::BoundCondVec<double> x) {
-	double v = 1.;
+	double v = 0.9;
 	
 	std::vector<bound_cond_vecs::BoundCondVec<double>> fu;
 	for(int ii = 0; ii < u.size(); ii++) {
@@ -23,7 +25,7 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> f(std::vector<bound_cond_vecs
 }
 
 std::vector<bound_cond_vecs::BoundCondVec<double>> g(std::vector<bound_cond_vecs::BoundCondVec<double>> u, double t, bound_cond_vecs::BoundCondVec<double> x) {
-	double nu = 0.01;
+	double nu = 0.;
 	
 	std::vector<bound_cond_vecs::BoundCondVec<double>> gu;
 	for(int ii = 0; ii < u.size(); ii++) {
@@ -38,7 +40,7 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> g(std::vector<bound_cond_vecs
 
 int main() {
 	double t0 = 0., dt = 0.01;
-	int nsteps = 50, nx = 100;
+	int nsteps = 500, nx = 100;
 	double x0 = 0., dx = 1. / nx;
 	bound_cond_vecs::BoundCondVec<double> x = integrators::linspace(x0, x0 + nx * dx, nx);
 	std::vector<bound_cond_vecs::BoundCondVec<double>> u0;
@@ -48,10 +50,14 @@ int main() {
 	}
 	u0.push_back(u0_tmp);
 	
-	auto u = integrators::FTCS(t0, dt, nsteps, x, u0, f, derivators::symm_derive, g, derivators::symm_derive_2);
+	auto u1 = integrators::FTCS(t0, dt, nsteps, x, u0, f, derivators::symm_derive, g, derivators::symm_derive_2);
+	auto u2 = integrators::Lax(t0, dt, nsteps, x, u0, f, derivators::symm_derive, g, derivators::symm_derive_2);
 	
 	double maxu = 2.;
-	waveplots::plot(u, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_SURF", SURF_PLOT, maxu);
-	waveplots::plot(u, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_CONT", CONT_PLOT, maxu);
-	waveplots::plot(u, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_COLZ", COLZ_PLOT, maxu);
+	waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_SURF", SURF_PLOT, maxu);
+	waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_CONT", CONT_PLOT, maxu);
+	waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_COLZ", COLZ_PLOT, maxu);
+	waveplots::plot(u2, t0, dt, nsteps, x0, dx, nx, "first_Lax_test_SURF", SURF_PLOT, maxu);
+	waveplots::plot(u2, t0, dt, nsteps, x0, dx, nx, "first_Lax_test_CONT", CONT_PLOT, maxu);
+	waveplots::plot(u2, t0, dt, nsteps, x0, dx, nx, "first_Lax_test_COLZ", COLZ_PLOT, maxu);
 }
