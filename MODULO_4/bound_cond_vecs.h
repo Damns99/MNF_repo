@@ -46,6 +46,12 @@ namespace bound_cond_vecs {
 				assert(new_mode == PERIODIC_BC || new_mode == ABSORBANT_BC || new_mode == REFLECTIVE_BC);
 				mode = new_mode;
 			}
+			BoundCondVec(const BoundCondVec & other_bcv) {
+				length = other_bcv.length;
+				vec = new T[length];
+				for(int i = 0; i < length; i++) vec[i] = other_bcv[i];
+				mode = other_bcv.mode;
+			}
 			~BoundCondVec() {
 				if(length > 0) delete[] vec;
 			}
@@ -66,7 +72,7 @@ namespace bound_cond_vecs {
 				}
 				else return placeholder;
 			}
-			T operator[](int index) const {
+			T operator [] (int index) const {
 				if(mode == PERIODIC_BC) {
 					return vec[(index - length * ((index / length) - (index < 0))) % length];
 				}

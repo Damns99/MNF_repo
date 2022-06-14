@@ -8,23 +8,25 @@
 
 namespace derivators {
 	
-	typedef bound_cond_vecs::BoundCondVec<double> (*Derivator)(const bound_cond_vecs::BoundCondVec<double>&, const double);
+	using DblBcv = bound_cond_vecs::BoundCondVec<double>;
+	
+	typedef DblBcv (*Derivator)(const DblBcv&, const double);
 	
 	namespace utilities {
 		
-		bound_cond_vecs::BoundCondVec<double> fwd_der_function(const bound_cond_vecs::BoundCondVec<double>& input, const double dx) {
-			bound_cond_vecs::BoundCondVec<double> output(input.len(), input.getMode());
+		DblBcv fwd_der_function(const DblBcv& input, const double dx) {
+			DblBcv output(input.len(), input.getMode());
 			for(int ii = 0; ii < input.len(); ii++) output[ii] = (input[ii + 1] - input[ii]) / dx;
 			return output;
 		}
 		
-		bound_cond_vecs::BoundCondVec<double> symm_der_function(const bound_cond_vecs::BoundCondVec<double>& input, const double dx) {
-			bound_cond_vecs::BoundCondVec<double> output(input.len(), input.getMode());
+		DblBcv symm_der_function(const DblBcv& input, const double dx) {
+			DblBcv output(input.len(), input.getMode());
 			for(int ii = 0; ii < input.len(); ii++) output[ii] = (input[ii + 1] - input[ii - 1]) / (2. * dx);
 			return output;
 		}
 		
-		bound_cond_vecs::BoundCondVec<double> fft_der_function(const bound_cond_vecs::BoundCondVec<double>& input, const double dx) {
+		DblBcv fft_der_function(const DblBcv& input, const double dx) {
 			int N = input.len();
 			int M = N / 2 + 1;
 			double areal[M], aimag[M], outputp[N];
@@ -39,30 +41,30 @@ namespace derivators {
 				aimag[M-1] = 0.;
 			}
 			myFFT::my_dft_c2r_1d(N, aimag, areal, outputp);
-			bound_cond_vecs::BoundCondVec<double> output(N, outputp, input.getMode());
+			DblBcv output(N, outputp, input.getMode());
 			return output;
 		}
 		
-		bound_cond_vecs::BoundCondVec<double> fwd_der_i_function(const bound_cond_vecs::BoundCondVec<double>& input, const double dx) {
-			bound_cond_vecs::BoundCondVec<double> output(input.len(), input.getMode());
+		DblBcv fwd_der_i_function(const DblBcv& input, const double dx) {
+			DblBcv output(input.len(), input.getMode());
 			for(int ii = 0; ii < input.len(); ii++) output[ii] = (- 1 * input[ii + 2] + 4 * input[ii + 1] - 3 * input[ii]) / (2 * dx);
 			return output;
 		}
 		
 		
-		bound_cond_vecs::BoundCondVec<double> fwd_der_2_function(const bound_cond_vecs::BoundCondVec<double>& input, const double dx) {
-			bound_cond_vecs::BoundCondVec<double> output(input.len(), input.getMode());
+		DblBcv fwd_der_2_function(const DblBcv& input, const double dx) {
+			DblBcv output(input.len(), input.getMode());
 			for(int ii = 0; ii < input.len(); ii++) output[ii] = (- 1 * input[ii + 3] + 4 * input[ii + 2] - 5 * input[ii + 1] + 2 * input[ii]) / (dx * dx);
 			return output;
 		}
 		
-		bound_cond_vecs::BoundCondVec<double> symm_der_2_function(const bound_cond_vecs::BoundCondVec<double>& input, const double dx) {
-			bound_cond_vecs::BoundCondVec<double> output(input.len(), input.getMode());
+		DblBcv symm_der_2_function(const DblBcv& input, const double dx) {
+			DblBcv output(input.len(), input.getMode());
 			for(int ii = 0; ii < input.len(); ii++) output[ii] = (1 * input[ii + 1] - 2 * input[ii] + 1 * input[ii - 1]) / (dx * dx);
 			return output;
 		}
 		
-		bound_cond_vecs::BoundCondVec<double> fft_der_2_function(const bound_cond_vecs::BoundCondVec<double>& input, const double dx) {
+		DblBcv fft_der_2_function(const DblBcv& input, const double dx) {
 			int N = input.len();
 			int M = N / 2 + 1;
 			double areal[M], aimag[M], outputp[N];
@@ -77,7 +79,7 @@ namespace derivators {
 				aimag[M-1] = 0.;
 			}
 			myFFT::my_dft_c2r_1d(N, areal, aimag, outputp);
-			bound_cond_vecs::BoundCondVec<double> output(N, outputp, input.getMode());
+			DblBcv output(N, outputp, input.getMode());
 			return output;
 		}
 	}
