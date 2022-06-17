@@ -9,10 +9,13 @@
 #include "myfft.h"
 
 #include <TH2D.h>
+#include <TGraph.h>
+#include <TMultiGraph.h>
 #include <TCanvas.h>
 #include <TAxis.h>
 #include <TFrame.h>
 #include <TH1.h>
+#include <TLegend.h>
 
 #include <TError.h>
 
@@ -56,6 +59,41 @@ namespace waveplots {
 			
 			delete canvas;
 			delete hist;
+			
+			TCanvas* canvas2 = new TCanvas("canvas2", "Canvas2", 600, 400);
+			TMultiGraph* multigraph = new TMultiGraph();
+			TLegend* legend = new TLegend(0.75, 0.75, 0.85, 0.85);
+			
+			double tmpx[nx], first[nx], last[nx];
+			for(int j = 0; j < nx; j++) {
+				tmpx[j] = x0 + j * dx;
+				first[j] = bound(u[0][k][j], mn, mx);
+				last[j] = bound(u[nt - 1][k][j], mn, mx);
+			}
+			
+			TGraph* graph1 = new TGraph(nx, tmpx, first);
+			graph1->SetMarkerColor(1);
+			graph1->SetLineColor(1);
+			multigraph->Add(graph1);
+			legend->AddEntry(graph1, "t = 0.", "p");
+			TGraph* graph2 = new TGraph(nx, tmpx, last);
+			graph2->SetMarkerColor(2);
+			graph2->SetLineColor(2);
+			multigraph->Add(graph2);
+			std::stringstream ss2;
+			ss2 << "t = " << (nt - 1) * dt;
+			legend->AddEntry(graph2, ss2.str().c_str(), "p");
+			
+			multigraph->SetTitle((filename + ";x;u(x,t)").c_str());
+			canvas2->cd();
+			canvas2->SetGrid();
+			multigraph->Draw("APL");
+			legend->Draw();
+			canvas2->SaveAs((filename + "_fl.pdf").c_str());
+			canvas2->SaveSource((filename + "_fl.cpp").c_str());
+			
+			delete canvas2;
+			delete multigraph;
 		}
 	}
 	
@@ -79,7 +117,7 @@ namespace waveplots {
 			}
 			
 			hist->SetBit(TH1::kNoStats);
-			hist->SetTitle((filename + ";t;k;|u_k(t)|^2").c_str());
+			hist->SetTitle((filename + ";t;k;|u(k,t)|^2").c_str());
 			canvas->SetLogz();
 			canvas->SetLogy();
 			
@@ -92,6 +130,47 @@ namespace waveplots {
 			
 			delete canvas;
 			delete hist;
+			
+			TCanvas* canvas2 = new TCanvas("canvas2", "Canvas2", 600, 400);
+			TMultiGraph* multigraph = new TMultiGraph();
+			TLegend* legend = new TLegend(0.75, 0.75, 0.85, 0.85);
+			
+			double real0[nx], imag0[nx];
+			myFFT::my_dft_r2c_1d(nx, u[0][k].data(), real0, imag0);
+			double real1[nx], imag1[nx];
+			myFFT::my_dft_r2c_1d(nx, u[nt - 1][k].data(), real1, imag1);
+			double tmpx[nx / 2], first[nx / 2], last[nx / 2];
+			for(int j = 1; j < nx / 2 + 1; j++) {
+				tmpx[j - 1] = x0 + j * dx;
+				first[j - 1] = real0[j] * real0[j] + imag0[j] * imag0[j];
+				last[j - 1] = real1[j] * real1[j] + imag1[j] * imag1[j];
+			}
+			
+			TGraph* graph1 = new TGraph(nx / 2, tmpx, first);
+			graph1->SetMarkerColor(1);
+			graph1->SetLineColor(1);
+			multigraph->Add(graph1);
+			legend->AddEntry(graph1, "t = 0.", "p");
+			TGraph* graph2 = new TGraph(nx / 2, tmpx, last);
+			graph2->SetMarkerColor(2);
+			graph2->SetLineColor(2);
+			multigraph->Add(graph2);
+			std::stringstream ss2;
+			ss2 << "t = " << (nt - 1) * dt;
+			legend->AddEntry(graph2, ss2.str().c_str(), "p");
+			
+			multigraph->SetTitle((filename + ";k;|u(k,t)|^2").c_str());
+			canvas2->SetLogx();
+			canvas2->SetLogy();
+			canvas2->cd();
+			canvas2->SetGrid();
+			multigraph->Draw("APL");
+			legend->Draw();
+			canvas2->SaveAs((filename + "_fl.pdf").c_str());
+			canvas2->SaveSource((filename + "_fl.cpp").c_str());
+			
+			delete canvas2;
+			delete multigraph;
 		}
 	}
 	

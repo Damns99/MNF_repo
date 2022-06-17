@@ -3,6 +3,7 @@
 
 #include <math.h>
 #include <vector>
+#include <iostream>
 
 #include "bound_cond_vecs.h"
 #include "derivators.h"
@@ -25,6 +26,15 @@ namespace integrators {
 		std::vector<DblBcv> (*)(std::vector<DblBcv>, double, DblBcv));
 	
 	namespace utilities {
+		
+		void inline printPercent(int ii, int& percent, const int& nmeas) {
+			if(100 * ii / nmeas > percent) {
+				percent = 100 * ii / nmeas;
+				std::cout << "\r" << percent << "%";
+				std::flush(std::cout);
+			}
+		}
+		
 		// equation: du/dt = v * df(u)/dx + w * d2g(u)/dx2 + q
 		
 		std::vector<std::vector<DblBcv>> FTCS_function(
@@ -43,7 +53,10 @@ namespace integrators {
 			t.reserve(nsteps + 1);
 			t.push_back(t0);
 			
+			std::cout << "FTCS: " << std::endl;
+			int percent = 0;
 			for(int ii = 1; ii <= nsteps; ii++) {
+				printPercent(ii, percent, nsteps);
 				std::vector<DblBcv> new_u;
 				new_u.reserve(ndim);
 				std::vector<DblBcv> fu = f(u[ii - 1], t0 + (ii - 1) * dt, x);
@@ -59,6 +72,7 @@ namespace integrators {
 				u.push_back(new_u);
 				t.push_back(t0 + ii * dt);
 			}
+			std::cout << std::endl;
 			
 			return u;
 		}
@@ -79,7 +93,10 @@ namespace integrators {
 			t.reserve(nsteps + 1);
 			t.push_back(t0);
 			
+			std::cout << "Lax: " << std::endl;
+			int percent = 0;
 			for(int ii = 1; ii <= nsteps; ii++) {
+				printPercent(ii, percent, nsteps);
 				std::vector<DblBcv> new_u;
 				new_u.reserve(ndim);
 				std::vector<DblBcv> fu = f(u[ii - 1], t0 + (ii - 1) * dt, x);
@@ -95,6 +112,7 @@ namespace integrators {
 				u.push_back(new_u);
 				t.push_back(t0 + ii * dt);
 			}
+			std::cout << std::endl;
 			
 			return u;
 		}
@@ -118,7 +136,10 @@ namespace integrators {
 			u.push_back(u1[1]);
 			t.push_back(t0 + dt);
 			
+			std::cout << "LeapFrog: " << std::endl;
+			int percent = 0;
 			for(int ii = 2; ii <= nsteps; ii++) {
+				printPercent(ii, percent, nsteps);
 				std::vector<DblBcv> new_u;
 				new_u.reserve(ndim);
 				std::vector<DblBcv> fu = f(u[ii - 1], t0 + (ii - 1) * dt, x);
@@ -134,6 +155,7 @@ namespace integrators {
 				u.push_back(new_u);
 				t.push_back(t0 + ii * dt);
 			}
+			std::cout << std::endl;
 			
 			return u;
 		}
@@ -156,7 +178,10 @@ namespace integrators {
 			DblBcv x2 = x;
 			for(int ii = 0; ii < x2.len(); ii++) x2[ii] += 0.5 * dx;
 			
+			std::cout << "LaxWendroff: " << std::endl;
+			int percent = 0;
 			for(int ii = 1; ii <= nsteps; ii++) {
+				printPercent(ii, percent, nsteps);
 				std::vector<DblBcv> new_u, new_u2;
 				new_u.reserve(ndim);
 				new_u2.reserve(ndim);
@@ -184,6 +209,7 @@ namespace integrators {
 				u.push_back(new_u2);
 				t.push_back(t0 + ii * dt);
 			}
+			std::cout << std::endl;
 			
 			return u;
 		}
