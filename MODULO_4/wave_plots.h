@@ -33,7 +33,7 @@ namespace waveplots {
 	
 	using DblBcv = bound_cond_vecs::BoundCondVec<double>;
 	
-	void plot(const std::vector<std::vector<DblBcv>> u, double t0, double dt, int nt, double x0, double dx, int nx, const std::string file, int mode, double mn = -10., double mx = 10.) {
+	void plot(const std::vector<std::vector<DblBcv>> u, double t0, double dt, int nt, double x0, double dx, int nx, const std::string file, int mode, double* mn, double* mx) {
 		gErrorIgnoreLevel = kWarning;
 		
 		for(int k = 0; k < u[0].size(); k++) {
@@ -43,12 +43,12 @@ namespace waveplots {
 			
 			auto canvas = new TCanvas("canvas", filename.c_str(), 600, 400);
 			auto hist = new TH2D("hist", filename.c_str(), nt, t0, t0 + nt * dt, nx, x0, x0 + nx * dx);
-			for(int i = 0; i < nt; i++) for(int j = 0; j < nx; j++) hist->Fill(t0 + (i + 0.5) * dt, x0 + (j + 0.5) * dx, bound(u[i][k][j], mn, mx));
+			for(int i = 0; i < nt; i++) for(int j = 0; j < nx; j++) hist->Fill(t0 + (i + 0.5) * dt, x0 + (j + 0.5) * dx, bound(u[i][k][j], mn[k], mx[k]));
 			
 			hist->SetBit(TH1::kNoStats);
 			hist->SetTitle((filename + ";t;x;u(x,t)").c_str());
-			hist->SetMaximum(mx);
-			hist->SetMinimum(mn);
+			hist->SetMaximum(mx[k]);
+			hist->SetMinimum(mn[k]);
 			
 			if(mode == SURF_PLOT) hist->Draw("SURF");
 			else if(mode == CONT_PLOT) hist->Draw("CONT1Z");
@@ -67,8 +67,8 @@ namespace waveplots {
 			double tmpx[nx], first[nx], last[nx];
 			for(int j = 0; j < nx; j++) {
 				tmpx[j] = x0 + j * dx;
-				first[j] = bound(u[0][k][j], mn, mx);
-				last[j] = bound(u[nt - 1][k][j], mn, mx);
+				first[j] = bound(u[0][k][j], mn[k], mx[k]);
+				last[j] = bound(u[nt - 1][k][j], mn[k], mx[k]);
 			}
 			
 			TGraph* graph1 = new TGraph(nx, tmpx, first);

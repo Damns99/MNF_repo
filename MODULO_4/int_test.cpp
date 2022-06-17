@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 #include "integrators.h"
 #include "wave_plots.h"
 
-constexpr double vv = 0.25;
+constexpr double vv = 0.5;
 constexpr double ww = 0.001;
 constexpr double qq = 0.;
 
@@ -21,7 +21,7 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> v(std::vector<bound_cond_vecs
 	for(int ii = 0; ii < u.size(); ii++) {
 		bound_cond_vecs::BoundCondVec<double> vu_tmp(x.len(), x.getMode());
 		
-		for(int jj = 0; jj < x.len(); jj++) vu_tmp[jj] = vv;
+		for(int jj = 0; jj < x.len(); jj++) vu_tmp[jj] = vv * u[ii][jj];
 		
 		vu.push_back(vu_tmp);
 	}
@@ -57,7 +57,7 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> f(std::vector<bound_cond_vecs
 	for(int ii = 0; ii < u.size(); ii++) {
 		bound_cond_vecs::BoundCondVec<double> fu_tmp(x.len(), x.getMode());
 		
-		for(int jj = 0; jj < x.len(); jj++) fu_tmp[jj] = u[ii][jj] * u[ii][jj];
+		for(int jj = 0; jj < x.len(); jj++) fu_tmp[jj] = u[ii][jj];
 		
 		fu.push_back(fu_tmp);
 	}
@@ -100,8 +100,8 @@ int main() {
 	auto u4 = integrators::LaxWendroff(t0, dt, nsteps, x, u0, f, derivators::fwd_derive, g, derivators::symm_derive_2, v, w, q);
 	
 	fs::current_path(fs::current_path() / "measures");
-	double minu = -2., maxu = 2.;
-	// double minu = 0., maxu = 1.;
+	double minu[1] = {-2.}, maxu[2] = {2.};
+	// double minu[2] = {0.}, maxu[2] = {1.};
 	// waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_SURF", SURF_PLOT, minu, maxu);
 	// waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_CONT", CONT_PLOT, minu, maxu);
 	// waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_COLZ", COLZ_PLOT, minu, maxu);
@@ -112,7 +112,7 @@ int main() {
 	// waveplots::plot(u3, t0, dt, nsteps, x0, dx, nx, "first_LeapFrog_test_SURF", SURF_PLOT, minu, maxu);
 	// waveplots::plot(u3, t0, dt, nsteps, x0, dx, nx, "first_LeapFrog_CONT", CONT_PLOT, minu, maxu);
 	// waveplots::plot(u3, t0, dt, nsteps, x0, dx, nx, "first_LeapFrog_COLZ", COLZ_PLOT, minu, maxu);
-	waveplots::plotFFT(u3, t0, dt, nsteps, "first_LeapFrog__test_FFT_SURF", SURF_PLOT);
+	// waveplots::plotFFT(u3, t0, dt, nsteps, "first_LeapFrog_test_FFT_SURF", SURF_PLOT);
 	waveplots::plot(u4, t0, dt, nsteps, x0, dx, nx, "first_LaxWendroff_test_SURF", SURF_PLOT, minu, maxu);
 	// waveplots::plot(u4, t0, dt, nsteps, x0, dx, nx, "first_LaxWendroff_test_CONT", CONT_PLOT, minu, maxu);
 	waveplots::plot(u4, t0, dt, nsteps, x0, dx, nx, "first_LaxWendroff_test_COLZ", COLZ_PLOT, minu, maxu);

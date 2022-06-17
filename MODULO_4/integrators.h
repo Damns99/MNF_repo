@@ -192,7 +192,7 @@ namespace integrators {
 				std::vector<DblBcv> qu = q(u[ii - 1], t0 + (ii - 1) * dt, x);
 				for(int jj = 0; jj < ndim; jj++) {
 					DblBcv d1fu = d1(fu[jj], dx), d2gu = d2(gu[jj], dx), tmp_u(x.len(), x.getMode());
-					for(int kk = 0; kk < x.len(); kk++) tmp_u[kk] = (u[ii- 1][jj][kk] + u[ii- 1][jj][kk + 1]) / 2 + dt / 2 * (vu[jj][kk] * d1fu[kk] + wu[jj][kk] * d2gu[kk] + qu[jj][kk]);
+					for(int kk = 0; kk < x.len(); kk++) tmp_u[kk] = (u[ii- 1][jj][kk] + u[ii- 1][jj][kk + 1]) / 2 + dt / 2 * ((vu[jj][kk] + vu[jj][kk + 1]) / 2. * d1fu[kk] + (wu[jj][kk] + wu[jj][kk + 1]) / 2. * d2gu[kk] + (qu[jj][kk] + qu[jj][kk + 1]) / 2.);
 					new_u.push_back(tmp_u);
 				}
 				std::vector<DblBcv> fu2 = f(new_u, t0 + (ii - 0.5) * dt, x2);

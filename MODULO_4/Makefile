@@ -20,9 +20,15 @@ derivator_scaling: derivator_scaling.cpp bound_cond_vecs.h derivators.h
 int_test: int_test.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
 	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_test int_test.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft
 
-compile: bcv_test der_test derivator_scaling int_test
+int_grav_waves: int_grav_waves.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_grav_waves int_grav_waves.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft
 
-test: bcv_test der_test derivator_scaling int_test
+cn_linear: cn_linear.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o cn_linear cn_linear.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -ltridiag
+
+compile: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear
+
+test: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear
 	./bcv_test
 	./der_test
 	./derivator_scaling
@@ -33,3 +39,5 @@ clean:
 	rm -f der_test
 	rm -f derivator_scaling
 	rm -f int_test
+	rm -f int_grav_waves
+	rm -f cn_linear
