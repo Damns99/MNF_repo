@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 
 std::string outfoldername = "test";
 
-constexpr int length_        = 32;
+constexpr int length_        = 128;
 constexpr int init_mode_     = HOT;
 constexpr double extrafield_ = 0.;
 constexpr double beta_       = 0.3;
