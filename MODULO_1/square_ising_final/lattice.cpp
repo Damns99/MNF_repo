@@ -2,7 +2,7 @@
 
 void latticeFromFile(std::string input_file) {
 	load(input_file);
-	calculateEnergyMagnetizaton();
+	calculateEnergyMagnetization();
 }
 
 void createLattice(int len, double inv_temp, double extf, long seed, int init_mode, const std::string init_file = "") {
@@ -17,7 +17,7 @@ void createLattice(int len, double inv_temp, double extf, long seed, int init_mo
 	
 	spinInit(init_mode, init_file);
 	
-	calculateEnergyMagnetizaton();
+	calculateEnergyMagnetization();
 }
 
 void spinInit(int init_mode, const std::string init_file = "") {
@@ -69,10 +69,10 @@ void load(const std::string input_file) {
 	infile >> beta >> extrafield;
 	infile.close();
 	gen.fromFile("rand_" + input_file);
-	calculateEnergyMagnetizaton();
+	calculateEnergyMagnetization();
 }
 
-void calculateEnergyMagnetizaton() {
+void calculateEnergyMagnetization() {
 	energy = 0.;
 	magnetization = 0.;
 	

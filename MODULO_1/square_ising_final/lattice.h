@@ -39,7 +39,7 @@ void createLattice(int len, double inv_temp, double extf, long seed, int init_mo
 
 void spinInit(int init_mode, const std::string init_file);
 
-void calculateEnergyMagnetizaton();
+void calculateEnergyMagnetization();
 
 void spinToFile(const std::string output_file);
 
