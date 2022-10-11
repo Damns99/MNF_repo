@@ -2,7 +2,6 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <chrono>
 #include <ctime>
 #include <iomanip>
 #include <filesystem>
@@ -106,7 +105,7 @@ int main(int argc, char* argv[]) {
 		calculateEnergyMagnetization();
 		measfile << energy << '\t' << magnetization << '\t' << 1. * acc / ncycles / (length * length) << '\n';
 		
-		if(do_snapshots) {
+		if(do_snapshots && ii % do_snapshots == 0) {
 			auto curr_path = fs::current_path();
 			fs::current_path(fs::current_path() / "snapshots");
 			std::string snapname_ = "snapshot" + makeFixedLength(ii + 1, lognmeas) + ".png";
