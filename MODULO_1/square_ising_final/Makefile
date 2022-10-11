@@ -106,6 +106,13 @@ calc_all_all: calc_all
 	done; \
 	cd ..;
 
+analyze: plot_measures calc_corr_meas calc_corr_conf calc_means calc_all
+	./plot_measures $(MEAS_DIR)
+	./calc_corr_meas $(MEAS_DIR)
+	./calc_corr_conf $(MEAS_DIR)
+	./calc_means $(MEAS_DIR)
+	./calc_all $(MEAS_DIR)
+
 clean:
 	rm -f metro_ising
 	rm -f plot_measures
