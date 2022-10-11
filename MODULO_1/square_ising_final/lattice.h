@@ -52,6 +52,5 @@ void load(const std::string input_file);
 void snapshot(const std::string out_image);
 
 int updateMetropolis();
-int updateMetropolis2();
 
 #endif
