@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 	measfile.close();
 	save(outfilename + ".txt");
 	
-	std::cout << "Measure saved in folder " << folder << std::endl;
 	std::cout << std::endl;
+	std::cout << "Measure saved in folder " << folder << std::endl;
 	return 0;
 }
