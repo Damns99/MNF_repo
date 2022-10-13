@@ -38,7 +38,16 @@ calc_means: calc_means.cpp
 calc_all: calc_all.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o calc_all calc_all.cpp -lm -O2 -lran2
 
-test: metro_ising plot_measures calc_corr_meas calc_corr_conf calc_means calc_all
+retrieve_and_fit: retrieve_and_fit.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o retrieve_and_fit retrieve_and_fit.cpp -lm -O2 $(ROOT_CONFIG)
+
+fit_critical: fit_critical.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o fit_critical fit_critical.cpp -lm -O2 $(ROOT_CONFIG)
+
+plot_scalings: plot_scalings.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o plot_scalings plot_scalings.cpp -lm -O2 $(ROOT_CONFIG)
+
+test: metro_ising plot_measures calc_corr_meas calc_corr_conf calc_means calc_all retrieve_and_fit fit_critical plot_scalings
 	# ./metro_ising
 
 plot_all_measures: plot_measures
@@ -113,8 +122,22 @@ analyze: plot_measures calc_corr_meas calc_corr_conf calc_means calc_all
 	./calc_means $(MEAS_DIR)
 	./calc_all $(MEAS_DIR)
 
+measure_standard: test
+	./metro_ising -beta 0.30 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b030; ./metro_ising -beta 0.35 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b035; ./metro_ising -beta 0.36 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b036; ./metro_ising -beta 0.37 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b037; ./metro_ising -beta 0.38 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b038; ./metro_ising -beta 0.39 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b039; ./metro_ising -beta 0.40 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b040; ./metro_ising -beta 0.405 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0405; ./metro_ising -beta 0.41 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b041; ./metro_ising -beta 0.415 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0415; ./metro_ising -beta 0.42 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b042; ./metro_ising -beta 0.425 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0425; ./metro_ising -beta 0.43 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b043; ./metro_ising -beta 0.435 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0435; ./metro_ising -beta 0.44 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b044; ./metro_ising -beta 0.445 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0445; ./metro_ising -beta 0.45 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b045; ./metro_ising -beta 0.46 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b046; ./metro_ising -beta 0.47 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b047; ./metro_ising -beta 0.48 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b048; ./metro_ising -beta 0.53 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b053; \
+
+analyze_standard: test
+	make analyze MEAS_DIR=L$(LENGTH)b030; make analyze MEAS_DIR=L$(LENGTH)b035; make analyze MEAS_DIR=L$(LENGTH)b036; make analyze MEAS_DIR=L$(LENGTH)b037; make analyze MEAS_DIR=L$(LENGTH)b038; make analyze MEAS_DIR=L$(LENGTH)b039; make analyze MEAS_DIR=L$(LENGTH)b040; make analyze MEAS_DIR=L$(LENGTH)b0405; make analyze MEAS_DIR=L$(LENGTH)b041; make analyze MEAS_DIR=L$(LENGTH)b0415; make analyze MEAS_DIR=L$(LENGTH)b042; make analyze MEAS_DIR=L$(LENGTH)b0425; make analyze MEAS_DIR=L$(LENGTH)b043; make analyze MEAS_DIR=L$(LENGTH)b0435; make analyze MEAS_DIR=L$(LENGTH)b044; make analyze MEAS_DIR=L$(LENGTH)b0445; make analyze MEAS_DIR=L$(LENGTH)b045; make analyze MEAS_DIR=L$(LENGTH)b046; make analyze MEAS_DIR=L$(LENGTH)b047; make analyze MEAS_DIR=L$(LENGTH)b048; make analyze MEAS_DIR=L$(LENGTH)b053; \
+
+measure_temporary: test
+	./metro_ising -beta 0.36 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b036; ./metro_ising -beta 0.37 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b037; ./metro_ising -beta 0.38 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b038; ./metro_ising -beta 0.39 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b039; ./metro_ising -beta 0.405 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0405; \
+	make analyze MEAS_DIR=L$(LENGTH)b036; make analyze MEAS_DIR=L$(LENGTH)b037; make analyze MEAS_DIR=L$(LENGTH)b038; make analyze MEAS_DIR=L$(LENGTH)b039; make analyze MEAS_DIR=L$(LENGTH)b0405; \
+
 clean:
 	rm -f metro_ising
 	rm -f plot_measures
+	rm -f calc_corr_meas
+	rm -f calc_corr_conf
+	rm -f calc_means
+	rm -f calc_all
 	rm -f *.o
 	rm -f *.so
