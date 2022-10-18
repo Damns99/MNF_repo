@@ -22,7 +22,7 @@ namespace fs = std::filesystem;
 #include <TMatrixDSym.h>
 #include <TFitResult.h>
 
-#define N_MAX_FOLDERS 25
+#define N_MAX_FOLDERS 32
 #define BIG_DOUBLE 8192.
 
 void fitGraphParable(const int n, double* x, double* y, double* dx, double* dy, const std::string xname, const std::string yname, const std::string title, const std::string outname, double xmin, double xmax, double* p0, int append, int length) {
