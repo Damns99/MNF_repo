@@ -45,7 +45,9 @@ int main(int argc, char* argv[]) {
 	tmpif >> tmp >> tmp >> _nu >> tmp >> d_nu;
 	tmpif.close();
 	
-	_nu = 1.; gamma_nu = 7./4.; beta_c = 0.44;
+	//_nu = 1.; 
+	//gamma_nu = 7./4.;
+	//beta_c = 0.27;
 	
 	TCanvas* K_canvas = new TCanvas("K_canvas", "K_canvas", 600, 400);
 	K_canvas->cd();

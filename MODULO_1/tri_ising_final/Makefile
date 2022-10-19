@@ -133,8 +133,8 @@ analyze_standard: test
 	done
 
 measure_temporary: test
-	for ii in 23 235 245 25 255 265 27 275 285 29 31 ; do \
-		./metro_ising -beta 0.$$ii -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0$$ii; \
+	for ii in 285 ; do \
+		./metro_ising -beta 0.$$ii -nm 16384 -nc 8 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0$$ii; \
 		make analyze MEAS_DIR=L$(LENGTH)b0$$ii; \
 	done
 
