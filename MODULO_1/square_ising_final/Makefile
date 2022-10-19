@@ -133,8 +133,10 @@ analyze_standard: test
 	done
 
 measure_temporary: test
-	./metro_ising -beta 0.48 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b048; ./metro_ising -beta 0.53 -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b053; \
-	make analyze MEAS_DIR=L$(LENGTH)b048; make analyze MEAS_DIR=L$(LENGTH)b053; \
+	for ii in 4175 4225 4275 4325 4375 4425 4475 ; do \
+		./metro_ising -beta 0.$$ii -nm 16384 -nc 8 -ns 256 -len $(LENGTH) -snapshots 4096 -folder L$(LENGTH)b0$$ii; \
+		make analyze MEAS_DIR=L$(LENGTH)b0$$ii; \
+	done
 
 clean:
 	rm -f metro_ising
