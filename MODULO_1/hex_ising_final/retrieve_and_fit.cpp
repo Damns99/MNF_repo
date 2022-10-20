@@ -32,10 +32,6 @@ void fitGraphParable(const int n, double* x, double* y, double* dx, double* dy, 
 	canvas->SetGrid();
 	graph->SetTitle((title + ";" + xname + ";" + yname).c_str());
 	
-	graph->Draw("AP");
-	graph->SetMarkerStyle(kFullCircle);
-	graph->SetMarkerSize(0.25);
-	
 	TF1* func = new TF1("func", "[0] - [1] * (x - [2]) * (x - [2])", xmin, xmax);
 	func->SetParameters(p0[0], p0[1], p0[2]);
 	func->SetParNames("y_max","c","x_max");
@@ -62,6 +58,11 @@ void fitGraphParable(const int n, double* x, double* y, double* dx, double* dy, 
 	func->SetLineColor(kGreen);
 	func->SetLineWidth(2);
 	func->DrawCopy("SAME");
+	
+	graph->Draw("AP");
+	graph->SetMarkerStyle(kFullCircle);
+	graph->SetMarkerSize(0.25);
+	
 	canvas->SaveAs((outname + "_fit.pdf").c_str());
 	
 	std::string outfilename = outname + "_fit_results.txt";

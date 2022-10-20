@@ -31,10 +31,6 @@ void fitGraphLine(const int n, double* x, double* y, double* dx, double* dy, con
 	canvas->SetGrid();
 	graph->SetTitle((title + ";" + xname + ";" + yname).c_str());
 	
-	graph->Draw("AP");
-	graph->SetMarkerStyle(kFullCircle);
-	graph->SetMarkerSize(0.25);
-	
 	TF1* func = new TF1("func", "[0] + [1] * x", xmin, xmax);
 	func->SetParameters(p0[0], p0[1]);
 	func->SetParNames("q","m");
@@ -61,6 +57,11 @@ void fitGraphLine(const int n, double* x, double* y, double* dx, double* dy, con
 	func->SetLineColor(kGreen);
 	func->SetLineWidth(2);
 	func->DrawCopy("SAME");
+	
+	graph->Draw("AP");
+	graph->SetMarkerStyle(kFullCircle);
+	graph->SetMarkerSize(0.25);
+	
 	canvas->SaveAs((outname + "_fit.pdf").c_str());
 	
 	std::string outfilename = "critical_fit_results.txt";
@@ -79,10 +80,6 @@ void fitGraph3Variables(const int n, double* x, double* y, double* dx, double* d
 	canvas->cd();
 	canvas->SetGrid();
 	graph->SetTitle((title + ";" + xname + ";" + yname).c_str());
-	
-	graph->Draw("AP");
-	graph->SetMarkerStyle(kFullCircle);
-	graph->SetMarkerSize(0.25);
 	
 	TF1* func = new TF1("func", "[0] + [1] * (x ^ (-[2]))", xmin, xmax);
 	func->SetParameters(p0[0], p0[1], p0[2]);
@@ -110,6 +107,11 @@ void fitGraph3Variables(const int n, double* x, double* y, double* dx, double* d
 	func->SetLineColor(kGreen);
 	func->SetLineWidth(2);
 	func->DrawCopy("SAME");
+	
+	graph->Draw("AP");
+	graph->SetMarkerStyle(kFullCircle);
+	graph->SetMarkerSize(0.25);
+	
 	canvas->SaveAs((outname + "_fit.pdf").c_str());
 	
 	std::string outfilename = "critical_fit_results.txt";
