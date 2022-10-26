@@ -3,6 +3,7 @@
 #include <string>
 #include <fstream>
 #include <ctime>
+#include <chrono>
 #include <iomanip>
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -59,7 +60,7 @@ int main(int argc, char* argv[]) {
     parser.addOptParameter<double>("extf", &extrafield, 0., "[double] Extern magnetic field (in units of JACC).");
     parser.addOptParameter<double>("beta", &beta, 0.3, "[double] One over temperature of the system (in units of JACC).");
     parser.addOptParameter<int>("append", &append, 0, "[int] If != 0 append measures to measfile instead of overwrtiting them.");
-    parser.addOptParameter<int>("snapshots", &do_snapshots, 0, "[int] If != 0 takes snapshots of the lattice at each measure.");
+    parser.addOptParameter<int>("snapshots", &do_snapshots, 0, "[int] If != 0 takes snapshots of the lattice every [snapshots] measures");
 	
     if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
 	
@@ -94,8 +95,15 @@ int main(int argc, char* argv[]) {
 	}
 	int percent = 0;
 	
-	for(int ii = 0; ii < nskip; ii++) {
-		for(int jj = 0; jj < ncycles; jj++) for(int kk = 0; kk < length * length; kk ++) updateMetropolis();
+	if(nskip > 0) {
+		std::chrono::time_point<std::chrono::steady_clock> start, end;
+		start = std::chrono::steady_clock::now();
+		for(int ii = 0; ii < nskip; ii++) {
+			for(int jj = 0; jj < ncycles; jj++) for(int kk = 0; kk < length * length; kk ++) updateMetropolis();
+		}
+		end = std::chrono::steady_clock::now();
+		double pred_time = 1.e-9 * (end - start).count() / nskip * nmeas;
+		std::cout << "Expected time to complete: " << pred_time << " s  (" << pred_time / 60. << " m)" << std::endl;
 	}
 	for(int ii = 0; ii < nmeas; ii++) {
 		printPercent(ii, percent, nmeas);
