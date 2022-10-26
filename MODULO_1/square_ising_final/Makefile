@@ -123,12 +123,12 @@ analyze: plot_measures calc_corr_meas calc_corr_conf calc_means calc_all
 	./calc_all $(MEAS_DIR)
 
 measure_standard: test
-	for ii in 30 35 36 37 38 39 40 405 41 415 42 425 43 435 44 445 45 46 47 48 53 ; do \
+	for ii in 3 35 36 37 38 39 4 405 41 415 42 425 43 435 44 445 45 46 47 48 53 ; do \
 		./metro_ising -beta 0.$$ii -nm 65536 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0$$ii; \
 	done
 
 analyze_standard: test
-	for ii in 30 35 36 37 38 39 40 405 41 415 42 425 43 435 44 445 45 46 47 48 53 ; do \
+	for ii in 3 35 36 37 38 39 4 405 41 415 42 425 43 435 44 445 45 46 47 48 53 ; do \
 		make analyze MEAS_DIR=L$(LENGTH)b0$$ii; \
 	done
 
@@ -136,6 +136,34 @@ measure_temporary: test
 	for ii in 4175 4225 4275 4325 4375 4425 4475 ; do \
 		./metro_ising -beta 0.$$ii -nm 16384 -nc 8 -ns 256 -len $(LENGTH) -snapshots 4096 -folder L$(LENGTH)b0$$ii; \
 		make analyze MEAS_DIR=L$(LENGTH)b0$$ii; \
+	done
+
+table_of_measures: test
+	bbbb=(); \
+	for ff in `ls -d measures/L*b*` ; do \
+		read -a aaaa < $${ff}/metro_ising_meas.txt; \
+		bbbb+=($${aaaa[15]}); \
+	done; \
+	u_bbbb=(`for ii in "$${bbbb[@]}"; do echo "$$ii"; done | sort -u`); \
+	printf "" > measures/table_of_measures.txt ; \
+	for bb in $${u_bbbb[@]} ; do \
+		s_bb=$${bb//./}; \
+		printf "\multicolumn{2}{c|}{$${bb}} " >> measures/table_of_measures.txt ; \
+		for ll in 8 16 32 64 128; do \
+			read -a cccc < measures/L$${ll}/beta_results_K_fit.txt; \
+			if [ -f "measures/L$${ll}b$${s_bb}/metro_ising_meas.txt" ]; then \
+				read -a aaaa < measures/L$${ll}b$${s_bb}/metro_ising_meas.txt; \
+				if [ `echo "$${aaaa[15]} >= $${cccc[3]} && $${aaaa[15]} <= $${cccc[5]}" | bc` -eq 1 ]; then \
+					printf "& \checkmark " >> measures/table_of_measures.txt ; \
+				else \
+					printf "& x " >> measures/table_of_measures.txt ; \
+				fi; \
+			else \
+				printf "& " >> measures/table_of_measures.txt ; \
+			fi; \
+		done; \
+		printf "\\" >> measures/table_of_measures.txt ; printf "\\" >> measures/table_of_measures.txt ; \
+		printf "\n" >> measures/table_of_measures.txt ; \
 	done
 
 clean:

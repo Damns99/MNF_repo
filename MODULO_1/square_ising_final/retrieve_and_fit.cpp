@@ -34,14 +34,15 @@ void fitGraphParable(const int n, double* x, double* y, double* dx, double* dy, 
 	
 	TF1* func = new TF1("func", "[0] - [1] * (x - [2]) * (x - [2])", xmin, xmax);
 	func->SetParameters(p0[0], p0[1], p0[2]);
+	func->SetParLimits(1, 0., BIG_DOUBLE * BIG_DOUBLE);
+	func->SetParLimits(2, xmin, xmax);
 	func->SetParNames("y_max","c","x_max");
 	func->SetNpx(100);
 	
 	func->SetLineColor(kRed);
 	func->SetLineWidth(1);
-	// func->DrawCopy("SAME");
 	
-	TFitResultPtr result = graph->Fit("func", "S+", "", xmin, xmax);
+	TFitResultPtr result = graph->Fit("func", "SR+", "", xmin, xmax);
 	TMatrixDSym covm = result->GetCovarianceMatrix();
 	double chi2 = result->Chi2(), ndof = result->Ndf();
 	double y_max = result->Parameter(0), c = result->Parameter(1), x_max = result->Parameter(2);
@@ -52,6 +53,7 @@ void fitGraphParable(const int n, double* x, double* y, double* dx, double* dy, 
 	std::streambuf* sb_cout = std::cout.rdbuf();
 	std::streambuf* sb_file = fstr.rdbuf();
 	std::cout.rdbuf(sb_file);
+	std::cout << "xlim = [ " << xmin << " , " << xmax << " ]" << std::endl;
 	result->Print("V");
 	std::cout.rdbuf(sb_cout);
 	
