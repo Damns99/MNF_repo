@@ -14,7 +14,7 @@ namespace fs = std::filesystem;
 
 std::string outfoldername = "test";
 
-constexpr int length_        = 128;
+constexpr int length_        = 8;
 constexpr int init_mode_     = HOT;
 constexpr double extrafield_ = 0.;
 constexpr double beta_       = 0.3;
@@ -89,8 +89,14 @@ int main(int argc, char* argv[]) {
 	measfile.open("metro_ising_test_energy.txt", std::fstream::out);
 	measfile << "#algorithm \tenergy" << std::endl;
 	
-	int ntotal = 1024;
-	for(int nmeas = ntotal; nmeas >= 1; nmeas/=2) timeTest(nmeas, ntotal / nmeas, &measfile);
+	// int ntotal = 4096;
+	// for(int nmeas = ntotal; nmeas >= 1; nmeas/=2) timeTest(nmeas, ntotal / nmeas, &measfile);
+	timeTest(256, 1, &measfile);
+	timeTest(256, 2, &measfile);
+	timeTest(256, 4, &measfile);
+	timeTest(256, 8, &measfile);
+	timeTest(256, 16, &measfile);
+	timeTest(256, 32, &measfile);
 	
 	measfile.close();
 	
