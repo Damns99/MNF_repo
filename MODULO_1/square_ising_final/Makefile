@@ -7,6 +7,7 @@ CUDALIBPATH1 := /usr/local/cuda-11.4/targets/x86_64-linux/lib/
 CUDALIBPATH2 := /usr/local/cuda-11.4/targets/x86_64-linux/lib/stubs/
 
 ROOT_CONFIG := -pthread -m64 -I/home/damns99/Programs/ROOT/builddir/include -L/home/damns99/Programs/ROOT/builddir/lib -lCore -lImt -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lROOTVecOps -lTree -lTreePlayer -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -Wl,-rpath=/home/damns99/Programs/ROOT/builddir/lib -pthread -lm -ldl -rdynamic
+NVCC_ROOT_CONFIG := -Xcompiler -pthread -m64 -I/home/damns99/Programs/ROOT/builddir/include -L/home/damns99/Programs/ROOT/builddir/lib -lCore -lImt -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lROOTVecOps -lTree -lTreePlayer -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread -lMultiProc -Xcompiler \"-Wl,-rpath=/home/damns99/Programs/ROOT/builddir/lib\" -Xcompiler -pthread -lm -ldl -Xcompiler -rdynamic
 #`root-config --cflags --libs`
 
 all: test
@@ -22,6 +23,15 @@ liblattice.so: lattice.o root_lattice.o
 
 metro_ising: metro_ising.cpp liblattice.so
 	g++ -std=c++2a -I $(INCLUDEPATH) -L . -Wl,-rpath=. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o metro_ising metro_ising.cpp lattice.o root_lattice.o -lm -O2 $(ROOT_CONFIG) -lran2 -llattice
+
+cuda_lattice.o: lattice.h cuda_lattice.cu cuda_lattice.cuh
+	/usr/local/cuda-11.4/bin/nvcc -std=c++17 -I $(INCLUDEPATH) -c -Xcompiler -fpic cuda_lattice.cu
+
+libcuda_lattice.so: lattice.o root_lattice.o cuda_lattice.o
+	g++ -shared -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L $(CUDALIBPATH1) -Wl,-rpath=$(CUDALIBPATH1) -L $(CUDALIBPATH2) -Wl,-rpath=$(CUDALIBPATH2) -o libcuda_lattice.so lattice.o root_lattice.o cuda_lattice.o -lm $(ROOT_CONFIG) -lran2 -lcuda -lcudart
+
+cuda_metro_ising: cuda_metro_ising.cu liblattice.so libcuda_lattice.so
+	/usr/local/cuda-11.4/bin/nvcc -arch=sm_75 -gencode=arch=compute_75,code=sm_75 -std=c++17 -I $(INCLUDEPATH) -L . -Xcompiler \"-Wl,-rpath=.\" -L $(LIBPATH) -Xcompiler \"-Wl,-rpath=$(LIBPATH)\" -o cuda_metro_ising cuda_metro_ising.cu -lm -O2 $(NVCC_ROOT_CONFIG) -lran2 -lcuda_lattice
 
 plot_measures: plot_measures.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o plot_measures plot_measures.cpp -lm -O2 $(ROOT_CONFIG)
@@ -47,7 +57,7 @@ fit_critical: fit_critical.cpp
 plot_scalings: plot_scalings.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o plot_scalings plot_scalings.cpp -lm -O2 $(ROOT_CONFIG)
 
-test: metro_ising plot_measures calc_corr_meas calc_corr_conf calc_means calc_all retrieve_and_fit fit_critical plot_scalings
+test: metro_ising plot_measures calc_corr_meas calc_corr_conf calc_means calc_all retrieve_and_fit fit_critical plot_scalings cuda_metro_ising
 	# ./metro_ising
 
 plot_all_measures: plot_measures
