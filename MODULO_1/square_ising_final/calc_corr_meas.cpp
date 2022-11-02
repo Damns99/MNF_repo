@@ -47,15 +47,19 @@ double correlation(int k, const std::vector<double>& vec, double vec_mean, doubl
 int main(int argc, char* argv[]) {
     std::string folder, measfilename, outname;
     std::vector<double> energy, magnetization, acceptance;
+	int iscuda;
 	
 	cmdlineParser::CmdlineParser parser;
     parser.addPosParameter<std::string>("folder", &folder, "0220419144203", "[std::string] Working folder name.");
     parser.addPosParameter<std::string>("measfile", &measfilename, "metro_ising_meas", "[std::string] Input file for the measures.");
     parser.addOptParameter<std::string>("outfile", &outname, "", "[std::string] Output files name for the results.");
+    parser.addOptParameter<int>("iscuda", &iscuda, 0, "[int] If != 0 searches in cudamesures/, if 0 in measures/.");
 	if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
     parser.kickOff(argv[0]);
 	
-    fs::current_path(fs::current_path() / "measures" / folder);
+	if(iscuda != 0) fs::current_path(fs::current_path() / "cudameasures");
+	else fs::current_path(fs::current_path() / "measures");
+    fs::current_path(fs::current_path() / folder);
     int nmeas = textIo::textIn(measfilename + ".txt", '\t', '#', &energy, &magnetization, &acceptance);
 	// for(auto& ii: magnetization) ii = abs(ii);
     

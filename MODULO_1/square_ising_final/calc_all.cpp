@@ -43,15 +43,19 @@ int main(int argc, char* argv[]) {
 	long seed = -7745;
     std::string folder, outfilename, measfilename;
     std::vector<double> energy, magnetization, acceptance;
+	int iscuda;
 	
 	cmdlineParser::CmdlineParser parser;
     parser.addPosParameter<std::string>("folder", &folder, "0220419144203", "[std::string] Working folder name.");
     parser.addPosParameter<std::string>("measfile", &measfilename, "metro_ising_meas.txt", "[std::string] Input file for the measures.");
     parser.addOptParameter<std::string>("outfile", &outfilename, "results.txt", "[std::string] Output file for the results.");
+    parser.addOptParameter<int>("iscuda", &iscuda, 0, "[int] If != 0 searches in cudamesures/, if 0 in measures/.");
 	if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
     parser.kickOff(argv[0]);
-	
-    fs::current_path(fs::current_path() / "measures" / folder);
+    
+	if(iscuda != 0) fs::current_path(fs::current_path() / "cudameasures");
+	else fs::current_path(fs::current_path() / "measures");
+    fs::current_path(fs::current_path() / folder);
     int nmeas = textIo::textIn(measfilename, '\t', '#', &energy, &magnetization, &acceptance);
 	for(auto& ii: magnetization) ii = abs(ii);
 	

@@ -126,11 +126,11 @@ calc_all_all: calc_all
 	cd ..;
 
 analyze: plot_measures calc_corr_meas calc_corr_conf calc_means calc_all
-	./plot_measures $(MEAS_DIR)
-	./calc_corr_meas $(MEAS_DIR)
-	./calc_corr_conf $(MEAS_DIR)
-	./calc_means $(MEAS_DIR)
-	./calc_all $(MEAS_DIR)
+	./plot_measures $(MEAS_DIR) -iscuda $(IS_CUDA)
+	./calc_corr_meas $(MEAS_DIR) -iscuda $(IS_CUDA)
+	./calc_corr_conf $(MEAS_DIR) -iscuda $(IS_CUDA)
+	./calc_means $(MEAS_DIR) -iscuda $(IS_CUDA)
+	./calc_all $(MEAS_DIR) -iscuda $(IS_CUDA)
 
 measure_standard: test
 	for ii in 3 35 36 37 38 39 4 405 41 415 42 425 43 435 44 445 45 46 47 48 53 ; do \
@@ -139,13 +139,23 @@ measure_standard: test
 
 analyze_standard: test
 	for ii in 3 35 36 37 38 39 4 405 41 415 42 425 43 435 44 445 45 46 47 48 53 ; do \
-		make analyze MEAS_DIR=L$(LENGTH)b0$$ii; \
+		make analyze MEAS_DIR=L$(LENGTH)b0$$ii IS_CUDA=0; \
 	done
 
 measure_temporary: test
 	for ii in 4175 4225 4275 4325 4375 4425 4475 ; do \
 		./metro_ising -beta 0.$$ii -nm 16384 -nc 8 -ns 256 -len $(LENGTH) -snapshots 4096 -folder L$(LENGTH)b0$$ii; \
-		make analyze MEAS_DIR=L$(LENGTH)b0$$ii; \
+		make analyze MEAS_DIR=L$(LENGTH)b0$$ii IS_CUDA=0; \
+	done
+
+cuda_measure_standard: test
+	for ii in 3 35 36 37 38 39 4 405 41 415 4175 42 4225 425 4275 43 4325 435 4375 44 4425 445 4475 45 46 47 48 53 ; do \
+		./cuda_metro_ising -beta 0.$$ii -nm 16384 -nc 16 -ns 256 -len $(LENGTH) -snapshots 8192 -folder L$(LENGTH)b0$$ii; \
+	done
+
+cuda_analyze_standard: test
+	for ii in 3 35 36 37 38 39 4 405 41 415 4175 42 4225 425 4275 43 4325 435 4375 44 4425 445 4475 45 46 47 48 53 ; do \
+		make analyze MEAS_DIR=L$(LENGTH)b0$$ii IS_CUDA=1; \
 	done
 
 table_of_measures: test

@@ -61,7 +61,7 @@ __global__ void squareMetropolisStepGPU(int bw, int dead_spin, int length_) {
 	if (d_rr[cuda_index2d(ii,jj,length_)] < r) {
         d_spin[cuda_index2d(ii,jj,length_)] = newspin;
 		d_delta_energy[cuda_index2d(ii,jj,length_)] += denergy;
-		d_delta_magnetization[cuda_index2d(ii,jj,length_)] += -2. * newspin;
+		d_delta_magnetization[cuda_index2d(ii,jj,length_)] += 2. * newspin;
     }
 }
 
@@ -71,9 +71,11 @@ __global__ void sumDeltaReduction(int n) {
 	int tid = threadIdx.x;
 	int index = threadIdx.x + (blockIdx.x * 2) * blockDim.x;
 	
+	//if(index < n) printf("block %d: adding d_d_m[%d] = %f to data[%d]\n", blockIdx.x, index, d_delta_magnetization[index], tid + blockDim.x);
 	double esum = (index < n) ? d_delta_energy[index] : 0;
 	double msum = (index < n) ? d_delta_magnetization[index] : 0;
 	if(index + blockDim.x < n) {
+		//printf("block %d: adding d_d_m[%d] = %f to data[%d]\n", blockIdx.x, index + blockDim.x, d_delta_magnetization[index + blockDim.x], tid + blockDim.x);
 		esum += d_delta_energy[index + blockDim.x];
 		msum += d_delta_magnetization[index + blockDim.x];
 	}
@@ -83,6 +85,7 @@ __global__ void sumDeltaReduction(int n) {
 	
 	for(int s = blockDim.x / 2; s > 0; s /= 2) {
 		if(tid < s) {
+			//printf("block %d: adding data[%d] = %f to data[%d]\n", blockIdx.x, blockDim.x + tid + s, data[blockDim.x + tid + s], blockDim.x + tid);
 			data[tid] += data[tid + s];
 			data[blockDim.x + tid] += data[blockDim.x + tid + s];
 		}
@@ -90,6 +93,7 @@ __global__ void sumDeltaReduction(int n) {
 	}
 	
 	if(tid == 0) {
+		//printf("block %d: setting d_d_m[%d] to data[%d] = %f\n", blockIdx.x, blockIdx.x, blockDim.x, data[blockDim.x]);
 		d_delta_energy[blockIdx.x] = data[0];
 		d_delta_magnetization[blockIdx.x] = data[blockDim.x];
 	}
@@ -108,10 +112,11 @@ __host__ void cudaUpdateMetropolis() {
 }
 
 __host__ void cudaMeasureEnergyMagnetization() {
-	int n = length;
-	int threads = (n < MAX_THREADS) ? nextPow2((n + 1) / 2) : MAX_THREADS;
+	int n = length * length;
+	int threads = (n < MAX_THREADS) ? nextPow2((n + 1) / 2) + 1 : MAX_THREADS;
 	int blocks = (n + (threads * 2 - 1)) / (threads * 2);
-	int smem_size = (threads <= 32) ? 4 * threads * sizeof(double) : 2 * threads * sizeof(double);
+	//int smem_size = (threads <= 32) ? 4 * threads * sizeof(double) : 2 * threads * sizeof(double);
+	int smem_size = 2 * threads * sizeof(double);
 	
 	sumDeltaReduction<<<blocks,threads,smem_size>>>(n);
 	
@@ -119,6 +124,7 @@ __host__ void cudaMeasureEnergyMagnetization() {
 	gpuErrchk(cudaMemcpyFromSymbol(h_delta_energy, d_delta_energy, blocks * sizeof(double)));
 	gpuErrchk(cudaMemcpyFromSymbol(h_delta_magnetization, d_delta_magnetization, blocks * sizeof(double)));
 	for(int i = 1; i < blocks; i++) {
+		//printf("adding h_d_m[%d] = %f to h_d_m[0] = %f\n", i, h_delta_magnetization[i], h_delta_magnetization[0]);
 		h_delta_energy[0] += h_delta_energy[i];
 		h_delta_magnetization[0] += h_delta_magnetization[i];
 	}

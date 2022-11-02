@@ -34,15 +34,19 @@ int distsq(int i, int j) {
 int main(int argc, char* argv[]) {
     std::string folder, measfilename, outname;
     std::vector<double> energy, magnetization, acceptance;
+	int iscuda;
 	
 	cmdlineParser::CmdlineParser parser;
     parser.addPosParameter<std::string>("folder", &folder, "0220419144203", "[std::string] Working folder name.");
     parser.addPosParameter<std::string>("measfile", &measfilename, "metro_ising_conf", "[std::string] Input file for the configuration.");
     parser.addOptParameter<std::string>("outfile", &outname, "", "[std::string] Output files name for the results.");
+    parser.addOptParameter<int>("iscuda", &iscuda, 0, "[int] If != 0 searches in cudamesures/, if 0 in measures/.");
 	if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
     parser.kickOff(argv[0]);
 	
-    fs::current_path(fs::current_path() / "measures" / folder);
+	if(iscuda != 0) fs::current_path(fs::current_path() / "cudameasures");
+	else fs::current_path(fs::current_path() / "measures");
+    fs::current_path(fs::current_path() / folder);
     load(measfilename + ".txt");
 	
 	int dsq_max = 2 * (length / 2) * (length / 2);
