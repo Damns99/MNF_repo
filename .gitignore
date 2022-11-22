@@ -33,3 +33,16 @@
 
 # Custom
 *.bak
+MODULO_1/square_ising_final/measures/L*b*/
+MODULO_1/tri_ising_final/measures/L*b*/
+MODULO_1/hex_ising_final/measures/L*b*/
+MODULO_1/3636_ising_final/measures/L*b*/
+MODULO_1/33336_ising_final/measures/L*b*/
+MODULO_1/square_ising_final/measures/old/
+MODULO_1/tri_ising_final/measures/old/
+MODULO_1/hex_ising_final/measures/old/
+MODULO_1/3636_ising_final/measures/old/
+MODULO_1/33336_ising_final/measures/old/
+MODULO_1/square_ising_final/cudameasures/L*b*/
+MODULO_1/square_ising_final/cudameasures/old/
+MODULO_3/*/*/measures/
