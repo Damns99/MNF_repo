@@ -60,7 +60,10 @@ plot_scalings: plot_scalings.cpp
 retrieve_and_fit_2: retrieve_and_fit_2.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o retrieve_and_fit_2 retrieve_and_fit_2.cpp -lm -O2 $(ROOT_CONFIG)
 
-test: metro_ising plot_measures calc_corr_meas calc_corr_conf calc_means calc_all retrieve_and_fit fit_critical plot_scalings cuda_metro_ising retrieve_and_fit_2
+plot_fsscaling: plot_fsscaling.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o plot_fsscaling plot_fsscaling.cpp -lm -O2 $(ROOT_CONFIG)
+
+test: metro_ising plot_measures calc_corr_meas calc_corr_conf calc_means calc_all retrieve_and_fit fit_critical plot_scalings cuda_metro_ising retrieve_and_fit_2 plot_fsscaling
 	# ./metro_ising
 
 plot_all_measures: plot_measures
