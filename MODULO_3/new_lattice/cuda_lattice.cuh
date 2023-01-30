@@ -25,25 +25,26 @@ constexpr int BLOCK_SIDE = 1024; // so that 1024 = 1024
 constexpr int MAX_THREADS = 1024;
 const dim3 thread_block(BLOCK_SIDE);
 dim3 grid;
-constexpr int shared_size = (2*BLOCK_SIDE + 2);
 
 __device__ int d_length;
 __device__ int d_nparticles;
 __device__ int d_p_length;
 __device__ double d_beta;
 
-__device__ int d_y[MAX_LENGTH];
+__device__ double d_y[MAX_LENGTH];
 __device__ int d_links[MAX_LENGTH];
 __device__ double d_rr[MAX_LENGTH];
 
-__device__ Rule d_rules[MAX_RULES];
+/* __device__ Rule d_rules[MAX_RULES];
 __device__ int d_repetitions[MAX_RULES];
-__device__ int d_nrules;
+__device__ int d_nrules; */
 
 __device__ double d_obs1[MAX_PARTICLES];
 __device__ double d_obs2[MAX_PARTICLES];
-__device__ double d_delta_obs1[MAX_PARTICLES][MAX_LENGTH];
-__device__ double d_delta_obs2[MAX_PARTICLES][MAX_LENGTH];
+__device__ double d_delta_obs1[MAX_LENGTH];
+__device__ double d_delta_obs2[MAX_LENGTH];
+
+__device__ double d_pars[MAX_PARS];
 
 __host__ void cudaInitFromLattice();
 
@@ -65,11 +66,9 @@ inline void gpuAssert(cudaError_t code, std::string file, int line, bool abort=f
    }
 }
 
-__global__ void calculateEnergyMagnetizatonGPU();
+__global__ void calculateObsGPU();
 
-__global__ void squareMetropolisStepGPU(int, int);
-
-__global__ void sumDeltaReduction(int);
+__global__ void metropolisStepGPU(int, int, int, Function_ds);
 
 unsigned int nextPow2(unsigned int x) {
 	x--;
@@ -80,5 +79,28 @@ unsigned int nextPow2(unsigned int x) {
 	x |= x >> 16;
 	return x++;
 }
+
+typedef __device__ double Function_ds(double, double, double, double, double*, double*);
+
+__device__ double harm_pot(double y0, double y1, double y2, double yp, double* pars, double outputs[2]) {
+	double tmp0 = (yp - y0), tmp1 = (yp + y0), tmp2 = (y1 + y2);
+	double ds = tmp0 * (tmp1 - tmp2) / pars[0] + tmp0 * tmp1 * pars[0] / 2;
+	outputs[0] = tmp0 * tmp1;
+	outputs[1] = 2. * (tmp0 * (tmp1 - tmp2));
+	return ds;
+}
+
+__device__ double double_hole(double y0, double y1, double y2, double yp, double* pars, double outputs[2]) {
+	double tmp0 = (yp - y0), tmp1 = (yp + y0), tmp2 = (y1 + y2);
+	double tmp3 = (yp * yp + y0 * y0 - 2.);
+	double ds = tmp0 * (tmp1 - tmp2) / pars[0] + tmp0 * tmp1 * tmp3 * pars[0] * pars[1];
+	outputs[0] = tmp0 * tmp1;
+	outputs[1] = 2. * (tmp0 * (tmp1 - tmp2));
+	return ds;
+}
+
+Function_ds func_ds = nullptr;
+
+
 
 #endif

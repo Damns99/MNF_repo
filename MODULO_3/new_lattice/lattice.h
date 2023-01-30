@@ -13,6 +13,7 @@
 constexpr int MAX_LENGTH = 65536; // = 2^16
 constexpr int MAX_RULES = 8;
 constexpr int MAX_PARTICLES = 3;
+constexpr int MAX_PARS = 4;
 
 constexpr int HOT = 1;
 constexpr int COLD = 2;
@@ -36,6 +37,7 @@ inline int repetitions[MAX_RULES];
 inline int nrules;
 inline double obs1[MAX_PARTICLES];
 inline double obs2[MAX_PARTICLES];
+inline double pars[MAX_PARS];
 
 void latticeFromFile(std::string input_file);
 
