@@ -149,7 +149,8 @@ analyze_standard: test
 	done
 
 measure_temporary: test
-	for ii in 4175 4225 4275 4325 4375 4425 4475 ; do \
+	#for ii in 4175 4225 4275 4325 4375 4425 4475 ; do \
+	for ii in 415 42 425 43 435 44 445 45 46 ; do \
 		./metro_ising -beta 0.$$ii -nm 16384 -nc 8 -ns 256 -len $(LENGTH) -snapshots 4096 -folder L$(LENGTH)b0$$ii; \
 		make analyze MEAS_DIR=L$(LENGTH)b0$$ii IS_CUDA=0; \
 	done

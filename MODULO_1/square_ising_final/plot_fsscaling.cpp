@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 	makeGraph(Ksize, L.data(), K_y.data(), nullptr, dK_y.data(), "L", "K_{max}L^{-#frac{#gamma}{#nu}}", "K finite size scaling theory", outfilename+"_K_theory");
 	
 	std::vector<double> K_y_exp, dK_y_exp;
-	double gamma_nu_exp = 1.71003;
+	double gamma_nu_exp = 1.709;
 	for(int i = 0; i < Ksize; i++) {
 		double lgn = pow(L[i], gamma_nu_exp);
 		K_y_exp.push_back(Kmax[i] / lgn);

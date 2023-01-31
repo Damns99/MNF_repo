@@ -1,0 +1,25 @@
+xlim = [ 0.435 , 0.4425 ]
+
+****************************************
+Minimizer is Minuit / Migrad
+Chi2                      =     0.588342
+NDf                       =            1
+Edm                       =  9.26565e-10
+NCalls                    =           87
+y_max                     =      12.2546   +/-   0.272861    
+c                         =      71933.8   +/-   28866.8      	 (limited)
+x_max                     =     0.439857   +/-   0.000670108  	 (limited)
+
+Covariance Matrix:
+
+            	       y_max           c       x_max
+y_max       	    0.074453      4988.9 -3.3288e-05
+c           	      4988.9  8.3334e+08     -14.169
+x_max       	 -3.3288e-05     -14.169  4.5438e-07
+
+Correlation Matrix:
+
+            	       y_max           c       x_max
+y_max       	           1     0.63336    -0.18098
+c           	     0.63336           1    -0.72812
+x_max       	    -0.18098    -0.72812           1
