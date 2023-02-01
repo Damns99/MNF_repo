@@ -22,7 +22,7 @@ namespace fs = std::filesystem;
 #include <TMatrixDSym.h>
 #include <TFitResult.h>
 
-#define N_MAX_FOLDERS 32
+#define N_MAX_FOLDERS 64
 #define BIG_DOUBLE 8192.
 #define MIN_POINTS_TO_FIT 4
 #define PERCENTAGE_STEP 0.05
@@ -118,6 +118,18 @@ void fitGraphParable(const int n, double* x, double* y, double* dx, double* dy, 
 	outfile.close();
 }
 
+void makeGraph(const int n, double* x, double* y, double* dx, double* dy, const std::string xname, const std::string yname, const std::string title, const std::string outname) {
+	TCanvas* canvas = new TCanvas(title.c_str(), title.c_str(), 600, 400);
+	canvas->cd();
+	canvas->SetGrid();
+	TGraphErrors* graph = new TGraphErrors(n, x, y, dx, dy);
+	graph->SetTitle((title + ";" + xname + ";" + yname).c_str());
+	graph->Draw("AP");
+	graph->SetMarkerStyle(kFullCircle);
+	graph->SetMarkerSize(0.25);
+	canvas->SaveAs((outname + ".pdf").c_str());
+}
+
 int main(int argc, char* argv[]) {
 	std::string outname, infilename, measfilename, folders[N_MAX_FOLDERS];
 	int nfolders, length, append;
@@ -139,6 +151,7 @@ int main(int argc, char* argv[]) {
 	assert(nfolders < N_MAX_FOLDERS);
 	
 	std::vector<double> beta(nfolders), E(nfolders), dE(nfolders), M(nfolders), dM(nfolders), K(nfolders), dK(nfolders), C(nfolders), dC(nfolders);
+	std::vector<double> BE(nfolders), dBE(nfolders), BM(nfolders), dBM(nfolders);
 	
 	fs::current_path(fs::current_path() / "measures");
     auto measures_folder = fs::current_path();
@@ -157,6 +170,8 @@ int main(int argc, char* argv[]) {
 		tmpif >> tmp >> tmp >> M[i] >> tmp >> dM[i];
 		tmpif >> tmp >> tmp >> C[i] >> tmp >> dC[i];
 		tmpif >> tmp >> tmp >> K[i] >> tmp >> dK[i];
+		tmpif >> tmp >> tmp >> BE[i] >> tmp >> dBE[i];
+		tmpif >> tmp >> tmp >> BM[i] >> tmp >> dBM[i];
 		tmpif.close();
 		
 		fs::current_path(measures_folder);
@@ -170,6 +185,9 @@ int main(int argc, char* argv[]) {
 	
 	fitGraphParable(nfolders, beta.data(), C.data(), nullptr, dC.data(), "#beta", "C(#beta)", "C(#beta) @ L = " + std::to_string(length), outname + "_C", append, length, percC);
 	fitGraphParable(nfolders, beta.data(), K.data(), nullptr, dK.data(), "#beta", "K(#beta)", "K(#beta) @ L = " + std::to_string(length), outname + "_K", append, length, percK);
+	
+	makeGraph(nfolders, beta.data(), BE.data(), nullptr, dBE.data(), "#beta", "Binder(E)", "Binder cumulant for E", outname+"_BE");
+	makeGraph(nfolders, beta.data(), BM.data(), nullptr, dBM.data(), "#beta", "Binder(M)", "Binder cumulant for M", outname+"_BM");
 }
 	
 	
