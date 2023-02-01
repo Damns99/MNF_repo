@@ -39,6 +39,19 @@ double cumulBinder(const std::vector<double>& vec) {
 	return s4 / (s2 * s2);
 }
 
+double welfordVariance(const std::vector<double>& vec) {
+	int count = 0;
+	double mean = 0., M2 = 0.;
+	for(auto& ii: vec) {
+		count++;
+		double delta = ii - mean;
+		mean += delta / count;
+		double delta2 = ii - mean;
+		M2 += delta * delta2;
+	}
+	return M2 / count;
+}
+
 int main(int argc, char* argv[]) {
 	long seed = -7745;
     std::string folder, outfilename, measfilename;
@@ -71,10 +84,10 @@ int main(int argc, char* argv[]) {
 	double magnetization_mean = mean(magnetization);
 	double magnetization_error = bootstrap::bootstrapError(mean, magnetization, 256, 64, -std::time(NULL));
     
-    double energy_der = derivative(energy) * lattice_length * lattice_length;
-	double energy_der_error = bootstrap::bootstrapError(derivative, energy, 256, 64, -std::time(NULL)) * lattice_length * lattice_length;
-	double magnetization_der = derivative(magnetization) * lattice_length * lattice_length;
-	double magnetization_der_error = bootstrap::bootstrapError(derivative, magnetization, 256, 64, -std::time(NULL)) * lattice_length * lattice_length;
+    double energy_der = welfordVariance(energy) * lattice_length * lattice_length;
+	double energy_der_error = bootstrap::bootstrapError(welfordVariance, energy, 256, 64, -std::time(NULL)) * lattice_length * lattice_length;
+	double magnetization_der = welfordVariance(magnetization) * lattice_length * lattice_length;
+	double magnetization_der_error = bootstrap::bootstrapError(welfordVariance, magnetization, 256, 64, -std::time(NULL)) * lattice_length * lattice_length;
 	
 	double energy_binder = cumulBinder(energy);
 	double energy_binder_error = bootstrap::bootstrapError(cumulBinder, energy, 256, 64, -std::time(NULL));
