@@ -150,8 +150,9 @@ analyze_standard: test
 
 measure_temporary: test
 	#for ii in 4175 4225 4275 4325 4375 4425 4475 ; do \
-	for ii in 415 42 425 43 435 44 445 45 46 ; do \
-		./metro_ising -beta 0.$$ii -nm 16384 -nc 8 -ns 256 -len $(LENGTH) -snapshots 4096 -folder L$(LENGTH)b0$$ii; \
+	#for ii in 4155 4205 4255 4305 4355 4405 4455 4505 4605 ; do \
+	for ii in 435 4375 438 444 ; do \
+		./metro_ising -beta 0.$$ii -nm 16384 -nc 32 -ns 256 -len $(LENGTH) -snapshots 4096 -folder L$(LENGTH)b0$$ii; \
 		make analyze MEAS_DIR=L$(LENGTH)b0$$ii IS_CUDA=0; \
 	done
 
@@ -163,6 +164,11 @@ cuda_measure_standard: test
 cuda_analyze_standard: test
 	for ii in 3 35 36 37 38 39 4 405 41 415 4175 42 4225 425 4275 43 4325 435 4375 44 4425 445 4475 45 46 47 48 53 ; do \
 		make analyze MEAS_DIR=L$(LENGTH)b0$$ii IS_CUDA=1; \
+	done
+
+analyze_all: test
+	for ff in `cd measures; ls -d L$(LENGTH)b*; cd ..` ; do \
+		make analyze MEAS_DIR=$${ff} IS_CUDA=0; \
 	done
 
 table_of_measures: test
