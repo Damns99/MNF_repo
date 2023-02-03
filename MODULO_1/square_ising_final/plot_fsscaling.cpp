@@ -75,11 +75,11 @@ int main(int argc, char* argv[]) {
 	makeGraph(Ksize, L.data(), K_y.data(), nullptr, dK_y.data(), "L", "K_{max}L^{-#frac{#gamma}{#nu}}", "K finite size scaling theory", outfilename+"_K_theory");
 	
 	std::vector<double> K_y_exp, dK_y_exp;
-	double gamma_nu_exp = 1.709;
+	double gamma_nu_exp = 1.719, dgamma_nu_exp = 0.002;
 	for(int i = 0; i < Ksize; i++) {
 		double lgn = pow(L[i], gamma_nu_exp);
 		K_y_exp.push_back(Kmax[i] / lgn);
-		dK_y_exp.push_back(dKmax[i] / lgn);
+		dK_y_exp.push_back(Kmax[i] / lgn * (sqrt(pow(dKmax[i]/Kmax[i], 2) + pow(log(L[i])*dgamma_nu_exp, 2))));
 	}
 	makeGraph(Ksize, L.data(), K_y_exp.data(), nullptr, dK_y_exp.data(), "L", "K_{max}L^{-#frac{#gamma}{#nu}}", "K finite size scaling experiment", outfilename+"_K_exp");
 }

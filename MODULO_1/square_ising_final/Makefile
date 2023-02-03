@@ -59,11 +59,14 @@ plot_scalings: plot_scalings.cpp
 
 retrieve_and_fit_2: retrieve_and_fit_2.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o retrieve_and_fit_2 retrieve_and_fit_2.cpp -lm -O2 $(ROOT_CONFIG)
+	
+retrieve_fixed_beta: retrieve_fixed_beta.cpp
+	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o retrieve_fixed_beta retrieve_fixed_beta.cpp -lm -O2 $(ROOT_CONFIG)
 
 plot_fsscaling: plot_fsscaling.cpp
 	g++ -std=c++2a -I $(INCLUDEPATH) -I .. -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -o plot_fsscaling plot_fsscaling.cpp -lm -O2 $(ROOT_CONFIG)
 
-test: metro_ising plot_measures calc_corr_meas calc_corr_conf calc_means calc_all retrieve_and_fit fit_critical plot_scalings cuda_metro_ising retrieve_and_fit_2 plot_fsscaling
+test: metro_ising plot_measures calc_corr_meas calc_corr_conf calc_means calc_all retrieve_and_fit fit_critical plot_scalings cuda_metro_ising retrieve_and_fit_2 plot_fsscaling retrieve_fixed_beta
 	# ./metro_ising
 
 plot_all_measures: plot_measures
@@ -151,8 +154,9 @@ analyze_standard: test
 measure_temporary: test
 	#for ii in 4175 4225 4275 4325 4375 4425 4475 ; do \
 	#for ii in 4155 4205 4255 4305 4355 4405 4455 4505 4605 ; do \
-	for ii in 435 4375 438 444 ; do \
-		./metro_ising -beta 0.$$ii -nm 16384 -nc 32 -ns 256 -len $(LENGTH) -snapshots 4096 -folder L$(LENGTH)b0$$ii; \
+	#for ii in 4305 433 4355 438 4405 443 4455 ; do \
+	for ii in 435 4375 44 445 ; do \
+		./metro_ising -beta 0.$$ii -nm 32768 -nc 32 -ns 256 -len $(LENGTH) -snapshots 4096 -folder L$(LENGTH)b0$$ii; \
 		make analyze MEAS_DIR=L$(LENGTH)b0$$ii IS_CUDA=0; \
 	done
 

@@ -186,8 +186,11 @@ int main(int argc, char* argv[]) {
 	fitGraphParable(nfolders, beta.data(), C.data(), nullptr, dC.data(), "#beta", "C(#beta)", "C(#beta) @ L = " + std::to_string(length), outname + "_C", append, length, percC);
 	fitGraphParable(nfolders, beta.data(), K.data(), nullptr, dK.data(), "#beta", "K(#beta)", "K(#beta) @ L = " + std::to_string(length), outname + "_K", append, length, percK);
 	
+	makeGraph(nfolders, beta.data(), E.data(), nullptr, dE.data(), "#beta", "E", "Energy", outname+"_E");
+	makeGraph(nfolders, beta.data(), M.data(), nullptr, dM.data(), "#beta", "|M|", "Magnetization", outname+"_M");
+	
 	makeGraph(nfolders, beta.data(), BE.data(), nullptr, dBE.data(), "#beta", "Binder(E)", "Binder cumulant for E", outname+"_BE");
-	makeGraph(nfolders, beta.data(), BM.data(), nullptr, dBM.data(), "#beta", "Binder(M)", "Binder cumulant for M", outname+"_BM");
+	makeGraph(nfolders, beta.data(), BM.data(), nullptr, dBM.data(), "#beta", "Binder(|M|)", "Binder cumulant for M", outname+"_BM");
 }
 	
 	
