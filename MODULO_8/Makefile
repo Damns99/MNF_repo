@@ -8,10 +8,16 @@ LIBPATH := ../shared_libs
 
 all: compile
 
+integrate_LIF: integrate_LIF.cpp
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o integrate_LIF integrate_LIF.cpp -lm -O2 $(ROOT_CONFIG)
 
+integrate_LIF2: integrate_LIF2.cpp
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o integrate_LIF2 integrate_LIF2.cpp -lm -O2 $(ROOT_CONFIG)
 
-compile: 
+compile: integrate_LIF integrate_LIF2
 
-test: 
+test: integrate_LIF integrate_LIF2
+	./integrate_LIF
+	./integrate_LIF2
 
 clean: 
