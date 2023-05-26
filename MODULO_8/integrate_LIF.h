@@ -15,6 +15,14 @@
 
 namespace int_lif {
 
+	// empty overhead-timing method
+	// 
+	std::vector<double> empty(double V0, double h, int N, std::vector<double>& I, double params[6]);
+	
+	// 2 memory access method
+	// 
+	std::vector<double> empty2(double V0, double h, int N, std::vector<double>& I, double params[6]);
+
 	// Forward Euler method
 	// dV(n)/dt = (V(n+1) - V(n)) / h
 	std::vector<double> fwdEuler(double V0, double h, int N, std::vector<double>& I, double params[6]);

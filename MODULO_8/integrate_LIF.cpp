@@ -6,6 +6,56 @@
 //    if V >= Vth => V -> V_reset and I(t:t+tref) = 0
 // }
 
+// empty overhead-timing method
+// fill with constant
+std::vector<double> int_lif::empty(double V0, double h, int N, std::vector<double>& I, double params[6]) {
+	double Cm = params[0], g = params[1], Vrest = params[2], Vth = params[3], Vreset = params[4], tauref = params[5];
+	double a = g/Cm*h;
+	std::vector<double> V(N);
+	int refr = 0;
+	V[0] = V0;
+	double new_V = V0;
+	for(int n = 1; n < N; n++) {
+		if(refr <= 0) new_V = V0;
+		else {
+			new_V = V0;
+			refr--;
+		}
+		if(new_V >= Vth) {
+			V[n] = Vreset;
+			new_V = Vreset;
+			refr = int(tauref / h);
+		}
+		else V[n] = new_V;
+	}
+	return V;
+}
+
+// 2 memory access method
+// 
+std::vector<double> int_lif::empty2(double V0, double h, int N, std::vector<double>& I, double params[6]) {
+	double Cm = params[0], g = params[1], Vrest = params[2], Vth = params[3], Vreset = params[4], tauref = params[5];
+	double a = g/Cm*h;
+	std::vector<double> V(N);
+	int refr = 0;
+	V[0] = V0;
+	double new_V = V0;
+	for(int n = 1; n < N; n++) {
+		if(refr <= 0) new_V = (1-a) * new_V + h/Cm * I[n-1];
+		else {
+			new_V = a * new_V;
+			refr--;
+		}
+		if(new_V >= Vth) {
+			V[n] = Vreset;
+			new_V = Vreset;
+			refr = int(tauref / h);
+		}
+		else V[n] = new_V;
+	}
+	return V;
+}
+
 // Forward Euler method
 // dV(n)/dt = (V(n+1) - V(n)) / h
 std::vector<double> int_lif::fwdEuler(double V0, double h, int N, std::vector<double>& I, double params[6]) {
@@ -23,6 +73,7 @@ std::vector<double> int_lif::fwdEuler(double V0, double h, int N, std::vector<do
 		}
 		if(new_V >= Vth) {
 			V[n] = Vreset;
+			new_V = Vreset;
 			refr = int(tauref / h);
 		}
 		else V[n] = new_V;
@@ -47,6 +98,7 @@ std::vector<double> int_lif::bwdEuler(double V0, double h, int N, std::vector<do
 		}
 		if(new_V >= Vth) {
 			V[n] = Vreset;
+			new_V = Vreset;
 			refr = int(tauref / h);
 		}
 		else V[n] = new_V;
@@ -71,6 +123,7 @@ std::vector<double> int_lif::Heun(double V0, double h, int N, std::vector<double
 		}
 		if(new_V >= Vth) {
 			V[n] = Vreset;
+			new_V = Vreset;
 			refr = int(tauref / h);
 		}
 		else V[n] = new_V;
@@ -96,6 +149,7 @@ std::vector<double> int_lif::RK4(double V0, double h, int N, std::vector<double>
 		}
 		if(new_V >= Vth) {
 			V[n] = Vreset;
+			new_V = Vreset;
 			refr = int(tauref / h);
 		}
 		else V[n] = new_V;

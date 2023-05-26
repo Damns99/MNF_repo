@@ -16,7 +16,16 @@ namespace fs = std::filesystem;
 #include <TFrame.h>
 #include <TLegend.h>
 
+#include "mystyle.h"
 #include "integrate_LIF.h"
+
+void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<double>& x, std::vector<double>& y, std::vector<double>& dy, int n, int color, const char* name, const char* labeltype = "p", const char* drawoption = "") {
+	TGraphErrors* graph = new TGraphErrors(n, x.data(), y.data(), nullptr, dy.data());
+	graph->SetMarkerColor(color);
+	graph->SetLineColor(color);
+	multigraph->Add(graph, drawoption);
+	legend->AddEntry(graph, name, labeltype);
+}
 
 int main() {
 	double params[6] = {
@@ -28,18 +37,21 @@ int main() {
 		1e-3 // taurefr [s]
 	};
 	double aI = 1e-9; // [A]
+	double startI = 0.1, durI = 0.008, intI = 0.05;
+	int numI = 25;
 	double t0 = 0; // [s]
 	double V0 = -70e-3; // [V]
 	
 	double simtime = 1.; // [s]
 	int nrep = 100;
 	
+	myStyle();
+	
 	TCanvas* canvas = new TCanvas("canvas0", "Canvas0", 600, 400);
 	TMultiGraph* multigraph = new TMultiGraph();
 	TLegend* legend = new TLegend(0.75, 0.75, 0.85, 0.85);
-	TGraphErrors* graph[5];
 	
-	std::vector<double> hvec = int_lif::utils::logspace(-6, -3, 100);
+	std::vector<double> hvec = int_lif::utils::logspace(-4, -3, 100);
 	
 	// fwdEuler
 	std::vector<double> timevec1, dtimevec1;
@@ -47,33 +59,21 @@ int main() {
 	for(double h : hvec) {
 		int_lif::utils::printPercent(ii1++, percent1, hvec.size(), "fwdEuler: ");
 		int N = int(simtime/h);
-		std::vector<double> I = int_lif::currents::pulse_train(N, int(0.1/h), int(0.01/h), aI, int(0.05/h), 25);
-		std::vector<double> time1(nrep);
+		std::vector<double> I = int_lif::currents::pulse_train(N, int(startI/h), int(durI/h), aI, int(intI/h), numI);
+		std::vector<double> time(nrep);
 		for(int jj = 0; jj < nrep; jj++) {
-			std::vector<double> V1, t1;
-			std::chrono::time_point<std::chrono::steady_clock> start1, end1;
-			start1 = std::chrono::steady_clock::now();
-			V1 = int_lif::fwdEuler(V0, h, N, I, params);
-			t1 = int_lif::utils::linspace(t0, t0 + N*h, N);
-			end1 = std::chrono::steady_clock::now();
-			time1[jj] = std::chrono::duration_cast<std::chrono::microseconds>(end1 - start1).count() / 1e6; // [s]
+			std::vector<double> V, t;
+			std::chrono::time_point<std::chrono::steady_clock> start, end;
+			start = std::chrono::steady_clock::now();
+			V = int_lif::fwdEuler(V0, h, N, I, params);
+			t = int_lif::utils::linspace(t0, t0 + N*h, N);
+			end = std::chrono::steady_clock::now();
+			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
 		}
-		// std::cout << "JB = " << int_lif::utils::JarqueBera(time1) << std::endl;
-		timevec1.push_back(int_lif::utils::mean(time1));
-		dtimevec1.push_back(int_lif::utils::stdev(time1)/sqrt(nrep));
+		timevec1.push_back(int_lif::utils::mean(time));
+		dtimevec1.push_back(int_lif::utils::stdev(time)/sqrt(nrep));
 	}
-	graph[0] = new TGraphErrors(hvec.size(), hvec.data(), timevec1.data(), nullptr, dtimevec1.data());
-	graph[0]->SetMarkerColor(1);
-	graph[0]->SetMarkerStyle(8);
-	graph[0]->SetMarkerSize(0.25);
-	graph[0]->SetLineColor(1);
-	multigraph->Add(graph[0]);
-	legend->AddEntry(graph[0], "fwdEuler", "p");
 	std::cout << std::endl;
-	/* for(auto it1 = timevec1.begin(), it2 = dtimevec1.begin(); it1 != timevec1.end() && it2 != dtimevec1.end(); it1++, it2++) {
-		std::cout << "[" << (*it1)-(*it2) << " " << (*it1)+(*it2) << "]" << std::endl;
-	}
-	std::cout << std::endl; */
 	
 	// bwdEuler
 	std::vector<double> timevec2, dtimevec2;
@@ -81,32 +81,21 @@ int main() {
 	for(double h : hvec) {
 		int_lif::utils::printPercent(ii2++, percent2, hvec.size(), "bwdEuler: ");
 		int N = int(simtime/h);
-		std::vector<double> I = int_lif::currents::pulse_train(N, int(0.1/h), int(0.01/h), aI, int(0.05/h), 25);
-		std::vector<double> time2(nrep);
+		std::vector<double> I = int_lif::currents::pulse_train(N, int(startI/h), int(durI/h), aI, int(intI/h), numI);
+		std::vector<double> time(nrep);
 		for(int jj = 0; jj < nrep; jj++) {
-			std::vector<double> V2, t2;
-			std::chrono::time_point<std::chrono::steady_clock> start2, end2;
-			start2 = std::chrono::steady_clock::now();
-			V2 = int_lif::bwdEuler(V0, h, N, I, params);
-			t2 = int_lif::utils::linspace(t0, t0 + N*h, N);
-			end2 = std::chrono::steady_clock::now();
-			time2[jj] = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2).count() / 1e6; // [s]
+			std::vector<double> V, t;
+			std::chrono::time_point<std::chrono::steady_clock> start, end;
+			start = std::chrono::steady_clock::now();
+			V = int_lif::bwdEuler(V0, h, N, I, params);
+			t = int_lif::utils::linspace(t0, t0 + N*h, N);
+			end = std::chrono::steady_clock::now();
+			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
 		}
-		timevec2.push_back(int_lif::utils::mean(time2));
-		dtimevec2.push_back(int_lif::utils::stdev(time2)/sqrt(nrep));
+		timevec2.push_back(int_lif::utils::mean(time));
+		dtimevec2.push_back(int_lif::utils::stdev(time)/sqrt(nrep));
 	}
-	graph[1] = new TGraphErrors(hvec.size(), hvec.data(), timevec2.data(), nullptr, dtimevec2.data());
-	graph[1]->SetMarkerColor(2);
-	graph[1]->SetMarkerStyle(8);
-	graph[1]->SetMarkerSize(0.25);
-	graph[1]->SetLineColor(2);
-	multigraph->Add(graph[1]);
-	legend->AddEntry(graph[1], "bwdEuler", "p");
 	std::cout << std::endl;
-	/* for(auto it1 = timevec2.begin(), it2 = dtimevec2.begin(); it1 != timevec2.end() && it2 != dtimevec2.end(); it1++, it2++) {
-		std::cout << "[" << (*it1)-(*it2) << " " << (*it1)+(*it2) << "]" << std::endl;
-	}
-	std::cout << std::endl; */
 	
 	// Heun
 	std::vector<double> timevec3, dtimevec3;
@@ -114,32 +103,21 @@ int main() {
 	for(double h : hvec) {
 		int_lif::utils::printPercent(ii3++, percent3, hvec.size(), "Heun: ");
 		int N = int(simtime/h);
-		std::vector<double> I = int_lif::currents::pulse_train(N, int(0.1/h), int(0.01/h), aI, int(0.05/h), 15);
-		std::vector<double> time3(nrep);
+		std::vector<double> I = int_lif::currents::pulse_train(N, int(startI/h), int(durI/h), aI, int(intI/h), numI);
+		std::vector<double> time(nrep);
 		for(int jj = 0; jj < nrep; jj++) {
-			std::vector<double> V3, t3;
-			std::chrono::time_point<std::chrono::steady_clock> start3, end3;
-			start3 = std::chrono::steady_clock::now();
-			V3 = int_lif::Heun(V0, h, N, I, params);
-			t3 = int_lif::utils::linspace(t0, t0 + N*h, N);
-			end3 = std::chrono::steady_clock::now();
-			time3[jj] = std::chrono::duration_cast<std::chrono::microseconds>(end3 - start3).count() / 1e6; // [s]
+			std::vector<double> V, t;
+			std::chrono::time_point<std::chrono::steady_clock> start, end;
+			start = std::chrono::steady_clock::now();
+			V = int_lif::Heun(V0, h, N, I, params);
+			t = int_lif::utils::linspace(t0, t0 + N*h, N);
+			end = std::chrono::steady_clock::now();
+			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
 		}
-		timevec3.push_back(int_lif::utils::mean(time3));
-		dtimevec3.push_back(int_lif::utils::stdev(time3)/sqrt(nrep));
+		timevec3.push_back(int_lif::utils::mean(time));
+		dtimevec3.push_back(int_lif::utils::stdev(time)/sqrt(nrep));
 	}
-	graph[2] = new TGraphErrors(hvec.size(), hvec.data(), timevec3.data(), nullptr, dtimevec3.data());
-	graph[2]->SetMarkerColor(3);
-	graph[2]->SetMarkerStyle(8);
-	graph[2]->SetMarkerSize(0.25);
-	graph[2]->SetLineColor(3);
-	multigraph->Add(graph[2]);
-	legend->AddEntry(graph[2], "Heun", "p");
 	std::cout << std::endl;
-	/* for(auto it1 = timevec3.begin(), it2 = dtimevec3.begin(); it1 != timevec3.end() && it2 != dtimevec3.end(); it1++, it2++) {
-		std::cout << "[" << (*it1)-(*it2) << " " << (*it1)+(*it2) << "]" << std::endl;
-	}
-	std::cout << std::endl; */
 	
 	// RK4
 	std::vector<double> timevec4, dtimevec4;
@@ -147,44 +125,84 @@ int main() {
 	for(double h : hvec) {
 		int_lif::utils::printPercent(ii4++, percent4, hvec.size(), "RK4: ");
 		int N = int(simtime/h);
-		std::vector<double> I = int_lif::currents::pulse_train(2*N, 2*int(0.1/h), 2*int(0.01/h), aI, 2*int(0.05/h), 15);
-		std::vector<double> time4(nrep);
+		std::vector<double> I = int_lif::currents::pulse_train(2*N, 2*int(startI/h), 2*int(durI/h), aI, 2*int(intI/h), numI);
+		std::vector<double> time(nrep);
 		for(int jj = 0; jj < nrep; jj++) {
-			std::vector<double> V4, t4;
-			std::chrono::time_point<std::chrono::steady_clock> start4, end4;
-			start4 = std::chrono::steady_clock::now();
-			V4 = int_lif::RK4(V0, h, N, I, params);
-			t4 = int_lif::utils::linspace(t0, t0 + N*h, N);
-			end4 = std::chrono::steady_clock::now();
-			time4[jj] = std::chrono::duration_cast<std::chrono::microseconds>(end4 - start4).count() / 1e6; // [s]
+			std::vector<double> V, t;
+			std::chrono::time_point<std::chrono::steady_clock> start, end;
+			start = std::chrono::steady_clock::now();
+			V = int_lif::RK4(V0, h, N, I, params);
+			t = int_lif::utils::linspace(t0, t0 + N*h, N);
+			end = std::chrono::steady_clock::now();
+			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
 		}
-		timevec4.push_back(int_lif::utils::mean(time4));
-		dtimevec4.push_back(int_lif::utils::stdev(time4)/sqrt(nrep));
+		timevec4.push_back(int_lif::utils::mean(time));
+		dtimevec4.push_back(int_lif::utils::stdev(time)/sqrt(nrep));
 	}
-	graph[3] = new TGraphErrors(hvec.size(), hvec.data(), timevec4.data(), nullptr, dtimevec4.data());
-	graph[3]->SetMarkerColor(4);
-	graph[3]->SetMarkerStyle(8);
-	graph[3]->SetMarkerSize(0.25);
-	graph[3]->SetLineColor(4);
-	multigraph->Add(graph[3]);
-	legend->AddEntry(graph[3], "RK4", "p");
 	std::cout << std::endl;
-	/* for(auto it1 = timevec4.begin(), it2 = dtimevec4.begin(); it1 != timevec4.end() && it2 != dtimevec4.end(); it1++, it2++) {
-		std::cout << "[" << (*it1)-(*it2) << " " << (*it1)+(*it2) << "]" << std::endl;
+	
+	// empty
+	std::vector<double> timevec5, dtimevec5;
+	int percent5 = 0, ii5 = -1;
+	for(double h : hvec) {
+		int_lif::utils::printPercent(ii5++, percent5, hvec.size(), "empty: ");
+		int N = int(simtime/h);
+		std::vector<double> I = int_lif::currents::pulse_train(N, int(startI/h), int(durI/h), aI, int(intI/h), numI);
+		std::vector<double> time(nrep);
+		for(int jj = 0; jj < nrep; jj++) {
+			std::vector<double> V, t;
+			std::chrono::time_point<std::chrono::steady_clock> start, end;
+			start = std::chrono::steady_clock::now();
+			V = int_lif::empty(V0, h, N, I, params);
+			t = int_lif::utils::linspace(t0, t0 + N*h, N);
+			end = std::chrono::steady_clock::now();
+			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
+		}
+		timevec5.push_back(int_lif::utils::mean(time));
+		dtimevec5.push_back(int_lif::utils::stdev(time)/sqrt(nrep));
 	}
-	std::cout << std::endl; */
+	std::cout << std::endl;
+	
+	// empty2
+	std::vector<double> timevec6, dtimevec6;
+	int percent6 = 0, ii6 = -1;
+	for(double h : hvec) {
+		int_lif::utils::printPercent(ii6++, percent6, hvec.size(), "empty2: ");
+		int N = int(simtime/h);
+		std::vector<double> I = int_lif::currents::pulse_train(N, int(startI/h), int(durI/h), aI, int(intI/h), numI);
+		std::vector<double> time(nrep);
+		for(int jj = 0; jj < nrep; jj++) {
+			std::vector<double> V, t;
+			std::chrono::time_point<std::chrono::steady_clock> start, end;
+			start = std::chrono::steady_clock::now();
+			V = int_lif::empty2(V0, h, N, I, params);
+			t = int_lif::utils::linspace(t0, t0 + N*h, N);
+			end = std::chrono::steady_clock::now();
+			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
+		}
+		timevec6.push_back(int_lif::utils::mean(time));
+		dtimevec6.push_back(int_lif::utils::stdev(time)/sqrt(nrep));
+	}
+	std::cout << std::endl;
+	
+	addToMultigraph(multigraph, legend, hvec, timevec1, dtimevec1, hvec.size(), 1, "fwdEuler", "p", "");
+	addToMultigraph(multigraph, legend, hvec, timevec2, dtimevec2, hvec.size(), 2, "bwdEuler", "p", "");
+	addToMultigraph(multigraph, legend, hvec, timevec3, dtimevec3, hvec.size(), 3, "Heun", "p", "");
+	addToMultigraph(multigraph, legend, hvec, timevec4, dtimevec4, hvec.size(), 4, "RK4", "p", "");
+	addToMultigraph(multigraph, legend, hvec, timevec5, dtimevec5, hvec.size(), 5, "empty", "p", "");
+	addToMultigraph(multigraph, legend, hvec, timevec6, dtimevec6, hvec.size(), 6, "empty2", "p", "");
 	
 	canvas->cd();
 	canvas->SetGrid();
 	multigraph->Draw("AP");
-	multigraph->SetTitle(";h [s];time [s]");
+	multigraph->SetTitle("timings comparison;h [s];time [s]");
 	legend->Draw();
 	canvas->SaveAs("timings_comparison.pdf");
 	multigraph->GetXaxis()->SetLimits(0.5e-6, 2e-3);
 	canvas->SetLogx();
 	canvas->SaveAs("timings_comparison_lx.pdf");
-	multigraph->SetMaximum(pow(10, ceil(log10(timevec4[0]))));
-	multigraph->SetMinimum(pow(10, floor(log10(timevec1[hvec.size()-1]))));
+	multigraph->SetMaximum(pow(10, ceil(log10(multigraph->GetHistogram()->GetMaximum()))));
+	multigraph->SetMinimum(pow(10, -7));
 	multigraph->Draw("APX"); // no error bars in logy
 	legend->Draw();
 	canvas->SetLogy();
