@@ -29,13 +29,17 @@ integrate_LIF4: integrate_LIF4.cpp libintegrate_LIF.so
 integrate_LIF5: integrate_LIF5.cpp libintegrate_LIF.so
 	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o integrate_LIF5 integrate_LIF5.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math
 
-compile: integrate_LIF1 integrate_LIF2 integrate_LIF3 integrate_LIF4 integrate_LIF5
+integrate_sin: integrate_sin.cpp libintegrate_LIF.so
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o integrate_sin integrate_sin.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math
 
-test: integrate_LIF1 integrate_LIF2 integrate_LIF3 integrate_LIF4 integrate_LIF5
+compile: integrate_LIF1 integrate_LIF2 integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_sin
+
+test: integrate_LIF1 integrate_LIF2 integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_sin
 	./integrate_LIF1
 	./integrate_LIF2
 	./integrate_LIF3
 	./integrate_LIF4
 	./integrate_LIF5
+	./integrate_sin
 
 clean: 

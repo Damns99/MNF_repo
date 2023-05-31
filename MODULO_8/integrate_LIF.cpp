@@ -41,7 +41,7 @@ std::vector<double> int_lif::empty2(double V0, double h, int N, std::vector<doub
 	V[0] = V0;
 	double new_V = V0;
 	for(int n = 1; n < N; n++) {
-		if(refr <= 0) new_V = (1-a) * new_V + h/Cm * I[n-1];
+		if(refr <= 0) new_V = (1-a) * new_V + h/Cm * I[(3*n-1)%N];
 		else {
 			new_V = a * new_V;
 			refr--;
@@ -81,6 +81,22 @@ std::vector<double> int_lif::fwdEuler(double V0, double h, int N, std::vector<do
 	return V;
 }
 
+// for now no tauref must be 0
+double int_lif::fwdEulerLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]) {
+	double Cm = params[0], g = params[1], Vrest = params[2], Vth = params[3], Vreset = params[4], tauref = params[5];
+	double a = g/Cm*h;
+	int N_ref = V_ref.size();
+	int methodSteps = 1;
+	int init_ii = ceil(methodSteps * h/h_ref);
+	std::vector<double> locerrorvec;
+	for(int ii = init_ii; ii < N_ref; ii += int((N_ref-init_ii)/Npoints)) {
+		double new_V = (1-a) * V_ref[int(ii-h/h_ref)] + a * Vrest + h/Cm * I_ref[int(ii-h/h_ref)];
+		if(new_V >= Vth) new_V = Vreset;
+		locerrorvec.push_back(abs(new_V - V_ref[ii]));
+	}
+	return utils::mean(locerrorvec);
+}
+
 // Backward Euler method
 // dV(n)/dt = (V(n) - V(n-1)) / h
 std::vector<double> int_lif::bwdEuler(double V0, double h, int N, std::vector<double>& I, double params[6]) {
@@ -106,6 +122,22 @@ std::vector<double> int_lif::bwdEuler(double V0, double h, int N, std::vector<do
 	return V;
 }
 
+// for now no tauref must be 0
+double int_lif::bwdEulerLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]) {
+	double Cm = params[0], g = params[1], Vrest = params[2], Vth = params[3], Vreset = params[4], tauref = params[5];
+	double a = g/Cm*h;
+	int N_ref = V_ref.size();
+	int methodSteps = 1;
+	int init_ii = ceil(methodSteps * h/h_ref);
+	std::vector<double> locerrorvec;
+	for(int ii = init_ii; ii < N_ref; ii += int((N_ref-init_ii)/Npoints)) {
+		double new_V = (V_ref[int(ii-h/h_ref)] + a * Vrest + h/Cm * I_ref[int(ii)]) / (1+a);
+		if(new_V >= Vth) new_V = Vreset;
+		locerrorvec.push_back(abs(new_V - V_ref[ii]));
+	}
+	return utils::mean(locerrorvec);
+}
+
 // Heun method
 // 
 std::vector<double> int_lif::Heun(double V0, double h, int N, std::vector<double>& I, double params[6]) {
@@ -121,6 +153,9 @@ std::vector<double> int_lif::Heun(double V0, double h, int N, std::vector<double
 			new_V = (a*a/2.-a+1) * new_V - (a*a/2.-a) * Vrest;
 			refr--;
 		}
+		/*double k1 = -g/Cm * (new_V - Vrest) + 1./Cm * I[n-1];
+		double k2 = -g/Cm * (new_V + h * k1 - Vrest) + 1./Cm * I[n];
+		new_V = new_V + h/2. * (k1 + k2);*/
 		if(new_V >= Vth) {
 			V[n] = Vreset;
 			new_V = Vreset;
@@ -129,6 +164,25 @@ std::vector<double> int_lif::Heun(double V0, double h, int N, std::vector<double
 		else V[n] = new_V;
 	}
 	return V;
+}
+
+// for now no tauref must be 0
+double int_lif::HeunLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]) {
+	double Cm = params[0], g = params[1], Vrest = params[2], Vth = params[3], Vreset = params[4], tauref = params[5];
+	double a = g/Cm*h;
+	int N_ref = V_ref.size();
+	int methodSteps = 1;
+	int init_ii = ceil(methodSteps * h/h_ref);
+	std::vector<double> locerrorvec;
+	for(int ii = init_ii; ii < N_ref; ii += int((N_ref-init_ii)/Npoints)) {
+		double new_V = (a*a/2.-a+1) * V_ref[int(ii-h/h_ref)] - (a*a/2.-a) * Vrest + (1-a)/2. * h/Cm * I_ref[int(ii-h/h_ref)] + 1/2. * h/Cm * I_ref[int(ii)];
+		/* double k1 = -g/Cm * (V_ref[int(ii-h/h_ref)] - Vrest) + 1./Cm * I_ref[int(ii-h/h_ref)];
+		double k2 = -g/Cm * (V_ref[int(ii-h/h_ref)] + h * k1 - Vrest) + 1./Cm * I_ref[int(ii)];
+		double new_V = V_ref[int(ii-h/h_ref)] + h/2. * (k1 + k2);*/
+		if(new_V >= Vth) new_V = Vreset;
+		locerrorvec.push_back(abs(new_V - V_ref[ii]));
+	}
+	return utils::mean(locerrorvec);
 }
 
 // RungeKutta4 method
@@ -155,6 +209,23 @@ std::vector<double> int_lif::RK4(double V0, double h, int N, std::vector<double>
 		else V[n] = new_V;
 	}
 	return V;
+}
+
+// for now no tauref must be 0
+double int_lif::RK4LocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]) {
+	double Cm = params[0], g = params[1], Vrest = params[2], Vth = params[3], Vreset = params[4], tauref = params[5];
+	double a = g/Cm*h;
+	double c1 = (a*a*a*a/24.-a*a*a/6.+a*a/2.-a+1), c2 = 1-c1, c3 = (-a*a*a/24.+a*a/12.-a/6.+1/6.) * h/Cm, c4 = (a*a/12.-a/3.+2/3.) * h/Cm, c5 = 1/6. * h/Cm;
+	int N_ref = V_ref.size();
+	int methodSteps = 1;
+	int init_ii = ceil(methodSteps * h/h_ref);
+	std::vector<double> locerrorvec;
+	for(int ii = init_ii; ii < N_ref; ii += int((N_ref-init_ii)/Npoints)) {
+		double new_V = c1 * V_ref[int(ii-h/h_ref)] + c2 * Vrest + c3 * I_ref[int(ii-h/h_ref)] + c4 * I_ref[int(ii-h/h_ref/2)] + c5 * I_ref[int(ii)];
+		if(new_V >= Vth) new_V = Vreset;
+		locerrorvec.push_back(abs(new_V - V_ref[ii]));
+	}
+	return utils::mean(locerrorvec);
 }
 
 // currents

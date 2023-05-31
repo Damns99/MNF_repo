@@ -26,18 +26,22 @@ namespace int_lif {
 	// Forward Euler method
 	// dV(n)/dt = (V(n+1) - V(n)) / h
 	std::vector<double> fwdEuler(double V0, double h, int N, std::vector<double>& I, double params[6]);
+	double fwdEulerLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 
 	// Backward Euler method
 	// dV(n)/dt = (V(n) - V(n-1)) / h
 	std::vector<double> bwdEuler(double V0, double h, int N, std::vector<double>& I, double params[6]);
+	double bwdEulerLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 
 	// Heun method
 	// 
 	std::vector<double> Heun(double V0, double h, int N, std::vector<double>& I, double params[6]);
+	double HeunLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 
 	// RungeKutta4 method
 	// 
 	std::vector<double> RK4(double V0, double h, int N, std::vector<double>& I, double params[6]);
+	double RK4LocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 
 	// currents
 	namespace currents {

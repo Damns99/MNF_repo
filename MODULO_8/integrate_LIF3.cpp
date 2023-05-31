@@ -39,7 +39,7 @@ int main() {
 	double simtime = 1.; // [s]
 	int N = int(simtime/h);
 	double aI = 0.1e-9; // [A]
-	double startI = 0.05, durI = 0.05, intI = 0.02;
+	double startI = 0.05, durI = 0.5, intI = 0.2;
 	int numI = 25;
 	std::vector<double> I = int_lif::currents::pulse_train(N, int(startI/h), int(durI/h), aI, int(intI/h), numI);
 	double t0 = 0; // [s]
@@ -110,7 +110,13 @@ int main() {
 	t_bench_tmp = int_lif::utils::linspace(t0, t0 + N_bench*h_bench, N_bench);
 	
 	std::vector<double> V_bench(N);
-	for(int i = 0; i < N; i++) V_bench[i] = V_bench_tmp[int(h/h_bench*i)];
+	// for(int i = 0; i < N; i++) V_bench[i] = V_bench_tmp[int(h/h_bench*i)];
+	for(int i = 0; i < N; i++) {
+		if(i*h < startI) V_bench[i] = -70e-3;
+		else if(i*h < startI+durI) V_bench[i] = -70e-3+10e-3*(1-exp(-(i*h-startI)/1e-2));
+		else if(i*h < startI+durI+intI) V_bench[i] = -70e-3+10e-3*(exp(-(i*h-startI-durI)/1e-2));
+		else V_bench[i] = -70e-3+10e-3*(1-exp(-(i*h-startI-durI-intI)/1e-2));
+	}
 	
 	std::cout << "fwdEuler - benchmark :" << std::endl;
 	std::cout << "mse = " << int_lif::utils::mse(V1,V_bench) << std::endl;
@@ -168,7 +174,7 @@ int main() {
 	
 	canvas2->cd();
 	canvas2->SetGrid();
-	multigraph2->SetMinimum(1e-4);
+	multigraph2->SetMinimum(1e-8);
 	multigraph2->Draw("AP");
 	multigraph2->SetTitle("LIF integrators deviation from reference;t [s];abs of relative deviation []");
 	legend2->Draw();
