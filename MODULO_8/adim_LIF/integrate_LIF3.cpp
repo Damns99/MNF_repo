@@ -35,16 +35,41 @@ int main() {
 	double h = 1e-1;
 	double simtime = 1e2;
 	int N = int(simtime/h);
-	double az = -0.16;
+	double x0 = 0.;
+	double y0 = 1.;
+	int nrep = 100;
+	
+	// Currents
+	double az = -0.;
+	// pulse_train
 	// double startz = 5, durz = 50, intz = 20;
 	// int numz = 25;
 	// std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
-	double periodz = 40, phasez = 3.923, offsetz = az;
+	// sine_wave
+	double periodz = 40, phasez = 3.923, offsetz = -0.10;
 	std::vector<double> z = int_lif::currents::sine_wave(N, int(periodz/h), az, int(phasez/h), offsetz);
-	double x0 = 0.;
-	double y0 = 1.;
+	std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, 2*int(periodz/h), az, 2*int(phasez/h), offsetz);
+	/* double meanz = -0.10, variancez = 0.0001;
+	std::vector<double> z = int_lif::currents::white_noise(N, meanz, variancez);
+	std::vector<double> zRK4 = int_lif::currents::white_noise(2*N, meanz, variancez); */
 	
-	int nrep = 100;
+	// Benchmark
+	double h_bench = 1e-4;
+	int N_bench = int(simtime/h_bench);
+	std::vector<double> z_bench = int_lif::currents::sine_wave(2*N_bench, 2*int(periodz/h_bench), az, 2*int(phasez/h_bench), offsetz);
+	// std::vector<double> z_bench = int_lif::currents::white_noise(2*N_bench, meanz, variancez);
+	std::vector<double> y_bench_tmp, x_bench_tmp, spkt_bench;
+	y_bench_tmp = int_lif::RK4(y0, h_bench, N_bench, z_bench, params, &spkt_bench);
+	x_bench_tmp = int_lif::utils::linspace(x0, x0 + N_bench*h_bench, N_bench);
+	std::vector<double> x_z_bench = int_lif::utils::linspace(x0, x0 + N_bench*h_bench, 2*N_bench);
+	std::cout << "Benchmark" << std::endl;
+	std::cout << "total spikes: " << spkt_bench.size() << std::endl;
+	std::cout << "spike times [Cm/g]";
+	for(auto& sp: spkt_bench) std::cout << " " << sp;
+	std::cout << std::endl << std::endl;
+	
+	std::vector<double> y_bench(N);
+	for(int i = 0; i < N; i++) y_bench[i] = y_bench_tmp[int(h/h_bench*i)];
 	
 	myStyle();
 	
@@ -101,7 +126,6 @@ int main() {
 	std::cout << std::endl;
 	
 	// RK4
-	std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, 2*int(periodz/h), az, 2*int(phasez/h), offsetz);
 	std::chrono::time_point<std::chrono::steady_clock> start4, end4;
 	start4 = std::chrono::steady_clock::now();
 	std::vector<double> y4, x4, spkt4;
@@ -116,31 +140,7 @@ int main() {
 	std::cout << "spike times [Cm/g]";
 	for(auto& sp: spkt4) std::cout << " " << sp;
 	std::cout << std::endl;
-	
 	std::cout << std::endl;
-	
-	// Benchmark
-	double h_bench = 1e-4;
-	int N_bench = int(simtime/h_bench);
-	std::vector<double> z_bench = int_lif::currents::sine_wave(2*N_bench, 2*int(periodz/h_bench), az, 2*int(phasez/h_bench), offsetz);
-	std::vector<double> y_bench_tmp, x_bench_tmp, spkt_bench;
-	y_bench_tmp = int_lif::RK4(y0, h_bench, N_bench, z_bench, params, &spkt_bench);
-	x_bench_tmp = int_lif::utils::linspace(x0, x0 + N_bench*h_bench, N_bench);
-	std::vector<double> x_z_bench = int_lif::utils::linspace(x0, x0 + N_bench*h_bench, 2*N_bench);
-	std::cout << "Benchmark" << std::endl;
-	std::cout << "total spikes: " << spkt_bench.size() << std::endl;
-	std::cout << "spike times [Cm/g]";
-	for(auto& sp: spkt_bench) std::cout << " " << sp;
-	std::cout << std::endl << std::endl;
-	
-	std::vector<double> y_bench(N);
-	for(int i = 0; i < N; i++) y_bench[i] = y_bench_tmp[int(h/h_bench*i)];
-	/* for(int i = 0; i < N; i++) {
-		if(i*h < startz) y_bench[i] = y0;
-		else if(i*h < startz+durz) y_bench[i] = y0+az*(1-exp(-(i*h-startz)));
-		else if(i*h < startz+durz+intz) y_bench[i] = y0+az*(exp(-(i*h-startz-durz)));
-		else y_bench[i] = y0+az*(1-exp(-(i*h-startz-durz-intz)));
-	} */
 	
 	std::cout << "fwdEuler - benchmark :" << std::endl;
 	std::cout << "mse = " << int_lif::utils::mse(y1,y_bench) << std::endl;

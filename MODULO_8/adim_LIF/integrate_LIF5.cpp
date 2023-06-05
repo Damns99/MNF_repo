@@ -35,11 +35,11 @@ int main() {
 		1.,  // yreset
 	};
 	double simtime = 1e2;
-	double az = -0.16;
+	double az = -0.0;
 	// double startz = 5, durz = 50, intz = 20;
 	// int numz = 25;
 	// std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
-	double periodz = 40, phasez = 3.923, offsetz = az;
+	double periodz = 40, phasez = 3.923, offsetz = -0.20;
 	double x0 = 0.;
 	double y0 = 1.;
 	

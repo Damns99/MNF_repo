@@ -178,6 +178,23 @@ std::vector<double> int_lif::currents::pulse_train(int n, int start, int duratio
 	return res;
 }
 
+std::vector<double> int_lif::currents::white_noise(int n, double mean, double variance, long seed) {
+	std::vector<double> res(n);
+	boxMuller::BoxMuller bm(seed);
+	std::vector<float> vec = bm.randToVec(mean, sqrt(variance), n);
+	for(int i = 0; i < n; i++) res[i] = vec[i];
+	return res;
+}
+
+std::vector<double> int_lif::currents::ou_noise(int n, double mean, double sigma, double tau, double h, long seed) {
+	std::vector<double> res(n);
+	boxMuller::BoxMuller bm(seed);
+	std::vector<float> vec = bm.randToVec(0., 1., n);
+	res[0] = vec[0];
+	for(int i = 1; i < n; i++) res[i] = exp(-h/tau) * res[i-1] + sigma*sqrt(1-exp(-2*h/tau)) * vec[i];
+	return res;
+}
+
 // utils
 
 std::vector<double> int_lif::utils::linspace(double x0, double x1, double n = 100) {

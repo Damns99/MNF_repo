@@ -6,6 +6,7 @@
 #include <utility>
 #include <string>
 #include <math.h>
+#include "box_muller.h"
 
 // single neuron Leaky Integrate and Fire model with external input
 // {
@@ -44,6 +45,10 @@ namespace int_lif {
 		std::vector<double> constant_pulse(int n, int start, int duration, double amplitude);
 
 		std::vector<double> pulse_train(int n, int start, int duration, double amplitude, int interval, int numpulses);
+		
+		std::vector<double> white_noise(int n, double mean, double variance, long seed = -9542342);
+		
+		std::vector<double> ou_noise(int n, double mean, double sigma, double tau, double h, long seed = -9542342);
 
 	}
 

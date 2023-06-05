@@ -172,14 +172,14 @@ int main() {
 	double h_bench = 1e-7;
 	int N_bench = int(simtime/h_bench);
 	std::vector<double> I_bench(N_bench);
-	//  for(int i = 0; i < N_bench; i++) I_bench[i] = cos(i*h_bench/simtime);
+	for(int i = 0; i < N_bench; i++) I_bench[i] = cos(i*h_bench/simtime);
 	//   for(int i = 0; i < N_bench; i++) I_bench[i] = i < N_bench/2 ? 1. : -1.;
-	for(int i = 0; i < N_bench; i++) I_bench[i] = func1(i, N_bench, h_bench);
+	//     for(int i = 0; i < N_bench; i++) I_bench[i] = func1(i, N_bench, h_bench);
 	std::vector<double> V_bench_tmp(N_bench), t_bench_tmp(N_bench);
 	// V_bench_tmp = sin_RK4(V0, h_bench, N_bench, I_bench);
-	//  for(int i = 0; i < N_bench; i++) V_bench_tmp[i] = sin(i*h_bench/simtime);
+	for(int i = 0; i < N_bench; i++) V_bench_tmp[i] = sin(i*h_bench/simtime);
 	//   for(int i = 0; i < N_bench; i++) V_bench_tmp[i] = i < N_bench/2 ? i*h_bench : (N_bench-i)*h_bench;
-	for(int i = 0; i < N_bench; i++) V_bench_tmp[i] = func2(i, N_bench, h_bench);
+	//     for(int i = 0; i < N_bench; i++) V_bench_tmp[i] = func2(i, N_bench, h_bench);
 	t_bench_tmp = int_lif::utils::linspace(t0, t0 + N_bench*h_bench, N_bench);
 	
 	int percent1 = 0, ii1 = -1;
@@ -187,13 +187,13 @@ int main() {
 		int_lif::utils::printPercent(ii1++, percent1, hvec.size(), "");
 		int N = int(simtime/h);
 		std::vector<double> I(N);
-		//  for(int i = 0; i < N; i++) I[i] = cos(i*h/simtime);
+		for(int i = 0; i < N; i++) I[i] = cos(i*h/simtime);
 		//    for(int i = 0; i < N; i++) I[i] = i < N/2 ? 1. : -1.;
-		for(int i = 0; i < N; i++) I[i] = func1(i, N, h);
+		//      for(int i = 0; i < N; i++) I[i] = func1(i, N, h);
 		std::vector<double> IRK4(2*N);
-		//  for(int i = 0; i < 2*N; i++) IRK4[i] = cos(i*h/simtime/2.);
+		for(int i = 0; i < 2*N; i++) IRK4[i] = cos(i*h/simtime/2.);
 		//    for(int i = 0; i < 2*N; i++) IRK4[i] = i < N ? 1. : -1.;
-		for(int i = 0; i < 2*N; i++) IRK4[i] = func1(i, 2*N, h/2);
+		//      for(int i = 0; i < 2*N; i++) IRK4[i] = func1(i, 2*N, h/2);
 		std::vector<double> V1, V2, V3, V4;
 		V1 = sin_fwdEuler(V0, h, N, I);
 		V2 = sin_bwdEuler(V0, h, N, I);
@@ -201,9 +201,9 @@ int main() {
 		V4 = sin_RK4(V0, h, N, IRK4);
 		std::vector<double> V_bench(N);
 		// for(int i = 0; i < N; i++) V_bench[i] = V_bench_tmp[int(h/h_bench*i)];
-		//  for(int i = 0; i < N; i++) V_bench[i] = sin(i*h/simtime);
+		for(int i = 0; i < N; i++) V_bench[i] = sin(i*h/simtime);
 		//    for(int i = 0; i < N; i++) V_bench[i] = i < N/2 ? i*h : (N-i)*h;
-		for(int i = 0; i < N; i++) V_bench[i] = func2(i, N, h);
+		//      for(int i = 0; i < N; i++) V_bench[i] = func2(i, N, h);
 		msevec1.push_back(int_lif::utils::mse(V1,V_bench));
 		msevec2.push_back(int_lif::utils::mse(V2,V_bench));
 		msevec3.push_back(int_lif::utils::mse(V3,V_bench));
@@ -303,10 +303,11 @@ int main() {
 	std::vector<double> t = int_lif::utils::linspace(t0, t0 + N*h, N);
 	std::vector<double> V1, V2, V3, V4;
 	std::vector<double> I(N), IRK4(2*N);
-	//  for(int i = 0; i < N; i++) I[i] = cos(i*h/simtime);
+	for(int i = 0; i < N; i++) I[i] = cos(i*h/simtime);
+	for(int i = 0; i < 2*N; i++) IRK4[i] = cos(i*h/simtime/2);
 	//    for(int i = 0; i < N; i++) I[i] = i < N/2 ? 1. : -1.;
-	for(int i = 0; i < N; i++) I[i] = func1(i, N, h);
-	for(int i = 0; i < 2*N; i++) IRK4[i] = func1(i, 2*N, h/2);
+	//      for(int i = 0; i < N; i++) I[i] = func1(i, N, h);
+	//      for(int i = 0; i < 2*N; i++) IRK4[i] = func1(i, 2*N, h/2);
 	
 	V1 = sin_fwdEuler(V0, h, N, I);
 	V2 = sin_bwdEuler(V0, h, N, I);
