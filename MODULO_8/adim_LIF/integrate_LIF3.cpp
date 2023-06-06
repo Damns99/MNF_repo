@@ -17,6 +17,7 @@ namespace fs = std::filesystem;
 
 #include "mystyle.h"
 #include "integrate_LIF.h"
+#include "text_io.h"
 
 void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<double>& x, std::vector<double>& y, int n, int color, const char* name, const char* labeltype = "p", const char* drawoption = "") {
 	TGraph* graph = new TGraph(n, x.data(), y.data());
@@ -205,5 +206,9 @@ int main() {
 	legend2->Draw();
 	canvas2->SetLogy();
 	canvas2->SaveAs("deviation_comparison.pdf");
+	
+	fs::current_path(fs::current_path() / "measures");
+	textIo::textOut("LIF3_ints_h_"+std::to_string(h)+".txt", '\t', '#', "time\tfwdEuler\tbwdEuler\tHeun\tRK4\tbench", N, false, x1, y1, y2, y3, y4, y_bench);
+	textIo::textOut("LIF3_diff_h_"+std::to_string(h)+".txt", '\t', '#', "time\tfwdEuler\tbwdEuler\tHeun\tRK4", N, false, x1, diff1, diff2, diff3, diff4);
 	
 }

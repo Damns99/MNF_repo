@@ -19,6 +19,7 @@ namespace fs = std::filesystem;
 
 #include "mystyle.h"
 #include "integrate_LIF.h"
+#include "text_io.h"
 
 void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<double>& x, std::vector<double>& y, int n, int color, const char* name, const char* labeltype = "p", const char* drawoption = "") {
 	TGraph* graph = new TGraph(n, x.data(), y.data());
@@ -169,4 +170,8 @@ int main() {
 	canvas3->SetLogy();
 	canvas3->SaveAs("locerror_comparison_lxly.pdf");
 	
+	fs::current_path(fs::current_path() / "measures");
+	textIo::textOut("LIF5_mae.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, maevec1, maevec2, maevec3, maevec4);
+	textIo::textOut("LIF5_mse.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, msevec1, msevec2, msevec3, msevec4);
+	textIo::textOut("LIF5_locerror.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, locerror1, locerror2, locerror3, locerror4);
 }

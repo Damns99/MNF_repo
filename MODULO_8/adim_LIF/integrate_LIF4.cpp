@@ -20,6 +20,7 @@ namespace fs = std::filesystem;
 
 #include "mystyle.h"
 #include "integrate_LIF.h"
+#include "text_io.h"
 
 TGraphErrors* addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<double>& x, std::vector<double>& y, std::vector<double>& dy, int n, int color, const char* name, const char* labeltype = "p", const char* drawoption = "") {
 	TGraphErrors* graph = new TGraphErrors(n, x.data(), y.data(), nullptr, dy.data());
@@ -262,4 +263,7 @@ int main() {
 	canvas2->SetLogx();
 	canvas2->SaveAs("timings_diff_fit_comparison.pdf");
 	
+	fs::current_path(fs::current_path() / "measures");
+	textIo::textOut("LIF4_timings.txt", '\t', '#', "h\tfwdEuler\terr\tbwdEuler\terr\tHeun\terr\tRK4\terr", hvec.size(), false, hvec, timevec1, dtimevec1, timevec2, dtimevec2, timevec3, dtimevec3, timevec4, dtimevec4);
+	textIo::textOut("LIF4_difftimes.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, diff1, diff2, diff3, diff4);
 }
