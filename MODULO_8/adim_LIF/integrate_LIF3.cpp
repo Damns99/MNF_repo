@@ -33,31 +33,31 @@ int main() {
 		0.7, // yth
 		1.,  // yreset
 	};
-	double h = 1e-1;
-	double simtime = 1e2;
-	int N = int(simtime/h);
+	double simtime = 1.9e0;
+	int N = 100;
+	double h = simtime/N;
 	double x0 = 0.;
 	double y0 = 1.;
 	int nrep = 100;
 	
 	// Currents
-	double az = -0.;
+	double az = -1.;
 	// pulse_train
 	// double startz = 5, durz = 50, intz = 20;
 	// int numz = 25;
 	// std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
 	// sine_wave
-	double periodz = 40, phasez = 3.923, offsetz = -0.10;
-	std::vector<double> z = int_lif::currents::sine_wave(N, int(periodz/h), az, int(phasez/h), offsetz);
-	std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, 2*int(periodz/h), az, 2*int(phasez/h), offsetz);
+	double periodz = 1., phasez = 0., offsetz = 0.;
+	std::vector<double> z = int_lif::currents::sine_wave(N, h, periodz, az, phasez, offsetz);
+	std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, h/2, periodz, az, phasez, offsetz);
 	/* double meanz = -0.10, variancez = 0.0001;
 	std::vector<double> z = int_lif::currents::white_noise(N, meanz, variancez);
 	std::vector<double> zRK4 = int_lif::currents::white_noise(2*N, meanz, variancez); */
 	
 	// Benchmark
-	double h_bench = 1e-4;
-	int N_bench = int(simtime/h_bench);
-	std::vector<double> z_bench = int_lif::currents::sine_wave(2*N_bench, 2*int(periodz/h_bench), az, 2*int(phasez/h_bench), offsetz);
+	int N_bench = 1e5;
+	double h_bench = simtime/N_bench;
+	std::vector<double> z_bench = int_lif::currents::sine_wave(2*N_bench, h_bench/2, periodz, az, phasez, offsetz);
 	// std::vector<double> z_bench = int_lif::currents::white_noise(2*N_bench, meanz, variancez);
 	std::vector<double> y_bench_tmp, x_bench_tmp, spkt_bench;
 	y_bench_tmp = int_lif::RK4(y0, h_bench, N_bench, z_bench, params, &spkt_bench);
@@ -70,7 +70,7 @@ int main() {
 	std::cout << std::endl << std::endl;
 	
 	std::vector<double> y_bench(N);
-	for(int i = 0; i < N; i++) y_bench[i] = y_bench_tmp[int(h/h_bench*i)];
+	for(int i = 0; i < N; i++) y_bench[i] = y_bench_tmp[int((N_bench-1.)/(N-1.)*i)];
 	
 	myStyle();
 	
@@ -210,5 +210,14 @@ int main() {
 	fs::current_path(fs::current_path() / "measures");
 	textIo::textOut("LIF3_ints_h_"+std::to_string(h)+".txt", '\t', '#', "time\tfwdEuler\tbwdEuler\tHeun\tRK4\tbench", N, false, x1, y1, y2, y3, y4, y_bench);
 	textIo::textOut("LIF3_diff_h_"+std::to_string(h)+".txt", '\t', '#', "time\tfwdEuler\tbwdEuler\tHeun\tRK4", N, false, x1, diff1, diff2, diff3, diff4);
+	
+	textIo::textOut("LIF3_bench_h_"+std::to_string(h_bench)+".txt", '\t', '#', "x_bench\tz_bench", 2*N_bench, false, x_z_bench, z_bench);
+	
+	double res = 0.;
+	for(auto it1 = y1.begin(), it2 = y_bench.begin(); it1 != y1.end() && it2 != y_bench.end(); it1++, it2++) {
+		std::cout << *it1 << " - " << *it2 << " -> " << abs((*it1)-(*it2));
+		res += abs((*it1)-(*it2));
+		std::cout << " -> " << res << std::endl;
+	}
 	
 }

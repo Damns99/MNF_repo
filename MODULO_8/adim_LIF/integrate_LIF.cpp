@@ -159,6 +159,11 @@ std::vector<double> int_lif::currents::sine_wave(int n, int period, double ampli
 	for(int ii = 0; ii < n; ii++) res[ii] = offset + amplitude * sin(2.*M_PI*(ii+phase)/period);
 	return res;
 }
+std::vector<double> int_lif::currents::sine_wave(int n, double h, double period, double amplitude, double phase, double offset) {
+	std::vector<double> res(n);
+	for(int ii = 0; ii < n; ii++) res[ii] = offset + amplitude * sin(2.*M_PI*(ii*h+phase)/period);
+	return res;
+}
 
 std::vector<double> int_lif::currents::constant_pulse(int n, int start, int duration, double amplitude) {
 	std::vector<double> res(n, 0.);

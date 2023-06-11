@@ -36,17 +36,19 @@ int main() {
 		1.,  // yreset
 	};
 	double simtime = 1e2;
-	double az = -0.0;
+	double az = -1.;
 	// double startz = 5, durz = 50, intz = 20;
 	// int numz = 25;
 	// std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
-	double periodz = 40, phasez = 3.923, offsetz = -0.20;
+	// double periodz = 40, phasez = 3.923, offsetz = -0.20;
+	double periodz = 1., phasez = 0., offsetz = 0.;
 	double x0 = 0.;
 	double y0 = 1.;
 	
-	std::vector<double> hvec = int_lif::utils::logspace(-4, 0, 400);
+	std::vector<double> hvec = int_lif::utils::logspace(-5, 0, 400);
 	std::vector<double> msevec1, msevec2, msevec3, msevec4;
 	std::vector<double> maevec1, maevec2, maevec3, maevec4;
+	std::vector<double> finerrvec1, finerrvec2, finerrvec3, finerrvec4;
 	
 	// Benchmark
 	double h_bench = 1e-4;
@@ -84,6 +86,10 @@ int main() {
 		maevec2.push_back(int_lif::utils::mae(y2,y_bench));
 		maevec3.push_back(int_lif::utils::mae(y3,y_bench));
 		maevec4.push_back(int_lif::utils::mae(y4,y_bench));
+		finerrvec1.push_back(abs(y1[N-1] - y_bench[N-1]));
+		finerrvec2.push_back(abs(y2[N-1] - y_bench[N-1]));
+		finerrvec3.push_back(abs(y3[N-1] - y_bench[N-1]));
+		finerrvec4.push_back(abs(y4[N-1] - y_bench[N-1]));
 	}
 	std::cout << std::endl;
 	
@@ -104,7 +110,7 @@ int main() {
 	multigraph1->SetTitle("MSE comparison;h [s];mse [V^2]");
 	legend1->Draw();
 	canvas1->SaveAs("mse_comparison.pdf");
-	multigraph1->GetXaxis()->SetLimits(0.5e-4, 2e0);
+	multigraph1->GetXaxis()->SetLimits(0.5e-5, 2e0);
 	canvas1->SetLogx();
 	canvas1->SaveAs("mse_comparison_lx.pdf");
 	multigraph1->SetMaximum(pow(10, ceil(log10(multigraph1->GetHistogram()->GetMaximum()))));
@@ -127,7 +133,7 @@ int main() {
 	multigraph2->SetTitle("MAE comparison;h [s];mae [V]");
 	legend2->Draw();
 	canvas2->SaveAs("mae_comparison.pdf");
-	multigraph2->GetXaxis()->SetLimits(0.5e-4, 2e0);
+	multigraph2->GetXaxis()->SetLimits(0.5e-5, 2e0);
 	canvas2->SetLogx();
 	canvas2->SaveAs("mae_comparison_lx.pdf");
 	multigraph2->SetMaximum(pow(10, ceil(log10(multigraph2->GetHistogram()->GetMaximum()))));
@@ -162,7 +168,7 @@ int main() {
 	multigraph3->SetTitle("locerror comparison;h [s];locerror [V]");
 	legend3->Draw();
 	canvas3->SaveAs("locerror_comparison.pdf");
-	multigraph3->GetXaxis()->SetLimits(0.5e-4, 2e0);
+	multigraph3->GetXaxis()->SetLimits(0.5e-5, 2e0);
 	canvas3->SetLogx();
 	canvas3->SaveAs("locerror_comparison_lx.pdf");
 	multigraph3->SetMaximum(pow(10, ceil(log10(multigraph3->GetHistogram()->GetMaximum()))));
@@ -170,8 +176,32 @@ int main() {
 	canvas3->SetLogy();
 	canvas3->SaveAs("locerror_comparison_lxly.pdf");
 	
+	TCanvas* canvas4 = new TCanvas("canvas4", "Canvas4", 600, 400);
+	TMultiGraph* multigraph4 = new TMultiGraph();
+	TLegend* legend4 = new TLegend(0.15, 0.75, 0.25, 0.85);
+	
+	addToMultigraph(multigraph4, legend4, hvec, finerrvec1, hvec.size(), 1, "fwdEuler", "p", "");
+	addToMultigraph(multigraph4, legend4, hvec, finerrvec2, hvec.size(), 2, "bwdEuler", "p", "");
+	addToMultigraph(multigraph4, legend4, hvec, finerrvec3, hvec.size(), 3, "Heun", "p", "");
+	addToMultigraph(multigraph4, legend4, hvec, finerrvec4, hvec.size(), 4, "RK4", "p", "");
+	
+	canvas4->cd();
+	canvas4->SetGrid();
+	multigraph4->Draw("AP");
+	multigraph4->SetTitle("final error comparison;h [s];fin. error [V]");
+	legend4->Draw();
+	canvas4->SaveAs("finerr_comparison.pdf");
+	multigraph4->GetXaxis()->SetLimits(0.5e-5, 2e0);
+	canvas4->SetLogx();
+	canvas4->SaveAs("finerr_comparison_lx.pdf");
+	multigraph4->SetMaximum(pow(10, ceil(log10(multigraph4->GetHistogram()->GetMaximum()))));
+	multigraph4->SetMinimum(pow(10, -6));
+	canvas4->SetLogy();
+	canvas4->SaveAs("finerr_comparison_lxly.pdf");
+	
 	fs::current_path(fs::current_path() / "measures");
 	textIo::textOut("LIF5_mae.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, maevec1, maevec2, maevec3, maevec4);
 	textIo::textOut("LIF5_mse.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, msevec1, msevec2, msevec3, msevec4);
 	textIo::textOut("LIF5_locerror.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, locerror1, locerror2, locerror3, locerror4);
+	textIo::textOut("LIF5_finerr.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, finerrvec1, finerrvec2, finerrvec3, finerrvec4);
 }

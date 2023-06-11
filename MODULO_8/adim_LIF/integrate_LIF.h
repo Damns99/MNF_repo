@@ -41,6 +41,7 @@ namespace int_lif {
 		std::vector<double> square_wave(int n, int period, double amplitude, int phase, double offset);
 		
 		std::vector<double> sine_wave(int n, int period, double amplitude, int phase, double offset);
+		std::vector<double> sine_wave(int n, double h, double period, double amplitude, double phase, double offset);
 
 		std::vector<double> constant_pulse(int n, int start, int duration, double amplitude);
 
