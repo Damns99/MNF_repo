@@ -33,9 +33,9 @@ int main() {
 		0.7, // yth
 		1.,  // yreset
 	};
-	double simtime = 1.9e0;
-	int N = 100;
-	double h = simtime/N;
+	double simtime = 1.e1;
+	int N = 1000;
+	double h = simtime/(N-1);
 	double x0 = 0.;
 	double y0 = 1.;
 	int nrep = 100;
@@ -56,13 +56,13 @@ int main() {
 	
 	// Benchmark
 	int N_bench = 1e5;
-	double h_bench = simtime/N_bench;
-	std::vector<double> z_bench = int_lif::currents::sine_wave(2*N_bench, h_bench/2, periodz, az, phasez, offsetz);
+	double h_bench = simtime/(N_bench-1);
+	std::vector<double> z_bench = int_lif::currents::sine_wave(2*N_bench-1, h_bench/2, periodz, az, phasez, offsetz);
 	// std::vector<double> z_bench = int_lif::currents::white_noise(2*N_bench, meanz, variancez);
 	std::vector<double> y_bench_tmp, x_bench_tmp, spkt_bench;
 	y_bench_tmp = int_lif::RK4(y0, h_bench, N_bench, z_bench, params, &spkt_bench);
-	x_bench_tmp = int_lif::utils::linspace(x0, x0 + N_bench*h_bench, N_bench);
-	std::vector<double> x_z_bench = int_lif::utils::linspace(x0, x0 + N_bench*h_bench, 2*N_bench);
+	x_bench_tmp = int_lif::utils::linspace(x0, x0 + simtime, N_bench);
+	std::vector<double> x_z_bench = int_lif::utils::linspace(x0, x0 + simtime, 2*N_bench-1);
 	std::cout << "Benchmark" << std::endl;
 	std::cout << "total spikes: " << spkt_bench.size() << std::endl;
 	std::cout << "spike times [Cm/g]";
@@ -84,7 +84,7 @@ int main() {
 	std::vector<double> y1, x1, spkt1;
 	for(int jj = 0; jj < nrep; jj++) {
 		y1 = int_lif::fwdEuler(y0, h, N, z, params);
-		x1 = int_lif::utils::linspace(x0, x0 + N*h, N);
+		x1 = int_lif::utils::linspace(x0, x0 + simtime, N);
 	}
 	end1 = std::chrono::steady_clock::now();
 	std::cout << "fwdEuler: " << std::chrono::duration_cast<std::chrono::microseconds>(end1 - start1).count() / 1000. << " ms" << std::endl;
@@ -100,7 +100,7 @@ int main() {
 	std::vector<double> y2, x2, spkt2;
 	for(int jj = 0; jj < nrep; jj++) {
 		y2 = int_lif::bwdEuler(y0, h, N, z, params);
-		x2 = int_lif::utils::linspace(x0, x0 + N*h, N);
+		x2 = int_lif::utils::linspace(x0, x0 + simtime, N);
 	}
 	end2 = std::chrono::steady_clock::now();
 	std::cout << "bwdEuler: " << std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2).count() / 1000. << " ms" << std::endl;
@@ -116,7 +116,7 @@ int main() {
 	std::vector<double> y3, x3, spkt3;
 	for(int jj = 0; jj < nrep; jj++) {
 		y3 = int_lif::Heun(y0, h, N, z, params);
-		x3 = int_lif::utils::linspace(x0, x0 + N*h, N);
+		x3 = int_lif::utils::linspace(x0, x0 + simtime, N);
 	}
 	end3 = std::chrono::steady_clock::now();
 	std::cout << "Heun: " << std::chrono::duration_cast<std::chrono::microseconds>(end3 - start3).count() / 1000. << " ms" << std::endl;
@@ -132,7 +132,7 @@ int main() {
 	std::vector<double> y4, x4, spkt4;
 	for(int jj = 0; jj < nrep; jj++) {
 		y4 = int_lif::RK4(y0, h, N, zRK4, params);
-		x4 = int_lif::utils::linspace(x0, x0 + N*h, N);
+		x4 = int_lif::utils::linspace(x0, x0 + simtime, N);
 	}
 	end4 = std::chrono::steady_clock::now();
 	std::cout << "RK4: " << std::chrono::duration_cast<std::chrono::microseconds>(end4 - start4).count() / 1000. << " ms" << std::endl;
@@ -211,7 +211,7 @@ int main() {
 	textIo::textOut("LIF3_ints_h_"+std::to_string(h)+".txt", '\t', '#', "time\tfwdEuler\tbwdEuler\tHeun\tRK4\tbench", N, false, x1, y1, y2, y3, y4, y_bench);
 	textIo::textOut("LIF3_diff_h_"+std::to_string(h)+".txt", '\t', '#', "time\tfwdEuler\tbwdEuler\tHeun\tRK4", N, false, x1, diff1, diff2, diff3, diff4);
 	
-	textIo::textOut("LIF3_bench_h_"+std::to_string(h_bench)+".txt", '\t', '#', "x_bench\tz_bench", 2*N_bench, false, x_z_bench, z_bench);
+	textIo::textOut("LIF3_bench_h_"+std::to_string(h_bench)+".txt", '\t', '#', "x_bench\tz_bench", 2*N_bench-1, false, x_z_bench, z_bench);
 	
 	double res = 0.;
 	for(auto it1 = y1.begin(), it2 = y_bench.begin(); it1 != y1.end() && it2 != y_bench.end(); it1++, it2++) {

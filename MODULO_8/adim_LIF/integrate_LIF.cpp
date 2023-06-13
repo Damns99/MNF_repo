@@ -156,12 +156,12 @@ std::vector<double> int_lif::currents::square_wave(int n, int period, double amp
 
 std::vector<double> int_lif::currents::sine_wave(int n, int period, double amplitude, int phase, double offset) {
 	std::vector<double> res(n);
-	for(int ii = 0; ii < n; ii++) res[ii] = offset + amplitude * sin(2.*M_PI*(ii+phase)/period);
+	for(int ii = 0; ii < n; ii++) res[ii] = offset + amplitude * sin(2.*std::numbers::pi*(ii+phase)/period);
 	return res;
 }
 std::vector<double> int_lif::currents::sine_wave(int n, double h, double period, double amplitude, double phase, double offset) {
 	std::vector<double> res(n);
-	for(int ii = 0; ii < n; ii++) res[ii] = offset + amplitude * sin(2.*M_PI*(ii*h+phase)/period);
+	for(int ii = 0; ii < n; ii++) res[ii] = offset + amplitude * sin(2.*std::numbers::pi*(ii*h+phase)/period);
 	return res;
 }
 
@@ -204,14 +204,14 @@ std::vector<double> int_lif::currents::ou_noise(int n, double mean, double sigma
 
 std::vector<double> int_lif::utils::linspace(double x0, double x1, double n = 100) {
 	std::vector<double> res(n);
-	double dx = (x1 - x0) / n;
+	double dx = (x1 - x0) / (n-1);
 	for(int ii = 0; ii < n; ii++) res[ii] = x0 + dx * ii;
 	return res;
 }
 
 std::vector<double> int_lif::utils::logspace(double e0, double e1, double n = 100) {
 	std::vector<double> res(n);
-	double de = (e1 - e0) / n;
+	double de = (e1 - e0) / (n-1);
 	for(int ii = 0; ii < n; ii++) res[ii] = pow(10, e0 + de * ii);
 	return res;
 }

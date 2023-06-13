@@ -6,6 +6,7 @@
 #include <utility>
 #include <string>
 #include <math.h>
+#include <numbers>
 #include "box_muller.h"
 
 // single neuron Leaky Integrate and Fire model with external input

@@ -29,9 +29,9 @@ void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<doubl
 	legend->AddEntry(graph, name, labeltype);
 }
 
-void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<int>& x, std::vector<double>& y, int n, int color, const char* name, const char* labeltype = "p", const char* drawoption = "") {
+void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<int>& x, std::vector<double>& y, int n, double simtime, int color, const char* name, const char* labeltype = "p", const char* drawoption = "") {
 	std::vector<double> xx(n);
-	for(int ii = 0; ii < n; ii++) xx[ii] = 1.9e0/x[ii];
+	for(int ii = 0; ii < n; ii++) xx[ii] = simtime/(x[ii]-1);
 	TGraph* graph = new TGraph(n, xx.data(), y.data());
 	graph->SetMarkerColor(color);
 	graph->SetLineColor(color);
@@ -45,7 +45,7 @@ int main() {
 		0.7, // yth
 		1.,  // yreset
 	};
-	double simtime = 1.9e0;
+	double simtime = 1e2;
 	double az = -1.;
 	// double startz = 5, durz = 50, intz = 20;
 	// int numz = 25;
@@ -56,12 +56,13 @@ int main() {
 	double y0 = 1.;
 	
 	int nNvec = 400;
+	double Nvec0 = 3., Nvec1 = 5.;
 	std::vector<int> Nvec; // occhio che sono double ma sono interi
 	for(int i = 0; i < nNvec; i++) {
-		int newN = floor(pow(10, 2.+(3.*i)/nNvec));
+		int newN = floor(pow(10, Nvec0+((Nvec1-Nvec0)*i)/nNvec));
 		if(i == 0 || newN != Nvec[Nvec.size()-1]) {
 			Nvec.push_back(newN);
-			std::cout << Nvec[Nvec.size()-1] << " ";
+			//std::cout << Nvec[Nvec.size()-1] << " ";
 		}
 	}
 	std::vector<double> msevec1, msevec2, msevec3, msevec4;
@@ -69,20 +70,20 @@ int main() {
 	std::vector<double> finerrvec1, finerrvec2, finerrvec3, finerrvec4;
 	
 	// Benchmark
-	int N_bench = 1e5;
-	double h_bench = simtime/N_bench;
-	std::vector<double> z_bench = int_lif::currents::sine_wave(2*N_bench, 2*int(periodz/h_bench), az, 2*int(phasez/h_bench), offsetz);
+	int N_bench = 1e8;
+	double h_bench = simtime/(N_bench-1);
+	std::vector<double> z_bench = int_lif::currents::sine_wave(2*N_bench-1, h_bench/2, periodz, az, phasez, offsetz);
 	std::vector<double> y_bench_tmp, x_bench_tmp, spkt_bench;
-	y_bench_tmp = int_lif::RK4(y0, h_bench, int(N_bench), z_bench, params, &spkt_bench);
+	y_bench_tmp = int_lif::RK4(y0, h_bench, N_bench, z_bench, params, &spkt_bench);
 	x_bench_tmp = int_lif::utils::linspace(x0, x0 + simtime, N_bench);
-	std::vector<double> x_z_bench = int_lif::utils::linspace(x0, x0 + simtime, 2*N_bench);
+	std::vector<double> x_z_bench = int_lif::utils::linspace(x0, x0 + simtime, 2*N_bench-1);
 	
 	int percent1 = 0, ii1 = -1;
 	for(int N : Nvec) {
 		int_lif::utils::printPercent(ii1++, percent1, Nvec.size(), "");
-		double h = simtime/N;
-		std::vector<double> z = int_lif::currents::sine_wave(N, int(periodz/h), az, int(phasez/h), offsetz);
-		std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, 2*int(periodz/h), az, 2*int(phasez/h), offsetz);
+		double h = simtime/(N-1);
+		std::vector<double> z = int_lif::currents::sine_wave(N, h, periodz, az, phasez, offsetz);
+		std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, h/2, periodz, az, phasez, offsetz);
 		std::vector<double> y1, y2, y3, y4;
 		y1 = int_lif::fwdEuler(y0, h, N, z, params);
 		y2 = int_lif::bwdEuler(y0, h, N, z, params);
@@ -117,10 +118,10 @@ int main() {
 	TMultiGraph* multigraph1 = new TMultiGraph();
 	TLegend* legend1 = new TLegend(0.15, 0.75, 0.25, 0.85);
 	
-	addToMultigraph(multigraph1, legend1, Nvec, msevec1, Nvec.size(), 1, "fwdEuler", "p", "");
-	addToMultigraph(multigraph1, legend1, Nvec, msevec2, Nvec.size(), 2, "bwdEuler", "p", "");
-	addToMultigraph(multigraph1, legend1, Nvec, msevec3, Nvec.size(), 3, "Heun", "p", "");
-	addToMultigraph(multigraph1, legend1, Nvec, msevec4, Nvec.size(), 4, "RK4", "p", "");
+	addToMultigraph(multigraph1, legend1, Nvec, msevec1, Nvec.size(), simtime, 1, "fwdEuler", "p", "");
+	addToMultigraph(multigraph1, legend1, Nvec, msevec2, Nvec.size(), simtime, 2, "bwdEuler", "p", "");
+	addToMultigraph(multigraph1, legend1, Nvec, msevec3, Nvec.size(), simtime, 3, "Heun", "p", "");
+	addToMultigraph(multigraph1, legend1, Nvec, msevec4, Nvec.size(), simtime, 4, "RK4", "p", "");
 	
 	canvas1->cd();
 	canvas1->SetGrid();
@@ -140,10 +141,10 @@ int main() {
 	TMultiGraph* multigraph2 = new TMultiGraph();
 	TLegend* legend2 = new TLegend(0.15, 0.75, 0.25, 0.85);
 	
-	addToMultigraph(multigraph2, legend2, Nvec, maevec1, Nvec.size(), 1, "fwdEuler", "p", "");
-	addToMultigraph(multigraph2, legend2, Nvec, maevec2, Nvec.size(), 2, "bwdEuler", "p", "");
-	addToMultigraph(multigraph2, legend2, Nvec, maevec3, Nvec.size(), 3, "Heun", "p", "");
-	addToMultigraph(multigraph2, legend2, Nvec, maevec4, Nvec.size(), 4, "RK4", "p", "");
+	addToMultigraph(multigraph2, legend2, Nvec, maevec1, Nvec.size(), simtime, 1, "fwdEuler", "p", "");
+	addToMultigraph(multigraph2, legend2, Nvec, maevec2, Nvec.size(), simtime, 2, "bwdEuler", "p", "");
+	addToMultigraph(multigraph2, legend2, Nvec, maevec3, Nvec.size(), simtime, 3, "Heun", "p", "");
+	addToMultigraph(multigraph2, legend2, Nvec, maevec4, Nvec.size(), simtime, 4, "RK4", "p", "");
 	
 	canvas2->cd();
 	canvas2->SetGrid();
@@ -198,10 +199,10 @@ int main() {
 	TMultiGraph* multigraph4 = new TMultiGraph();
 	TLegend* legend4 = new TLegend(0.15, 0.75, 0.25, 0.85);
 	
-	addToMultigraph(multigraph4, legend4, Nvec, finerrvec1, Nvec.size(), 1, "fwdEuler", "p", "");
-	addToMultigraph(multigraph4, legend4, Nvec, finerrvec2, Nvec.size(), 2, "bwdEuler", "p", "");
-	addToMultigraph(multigraph4, legend4, Nvec, finerrvec3, Nvec.size(), 3, "Heun", "p", "");
-	addToMultigraph(multigraph4, legend4, Nvec, finerrvec4, Nvec.size(), 4, "RK4", "p", "");
+	addToMultigraph(multigraph4, legend4, Nvec, finerrvec1, Nvec.size(), simtime, 1, "fwdEuler", "p", "");
+	addToMultigraph(multigraph4, legend4, Nvec, finerrvec2, Nvec.size(), simtime, 2, "bwdEuler", "p", "");
+	addToMultigraph(multigraph4, legend4, Nvec, finerrvec3, Nvec.size(), simtime, 3, "Heun", "p", "");
+	addToMultigraph(multigraph4, legend4, Nvec, finerrvec4, Nvec.size(), simtime, 4, "RK4", "p", "");
 	
 	canvas4->cd();
 	canvas4->SetGrid();
