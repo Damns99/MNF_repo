@@ -4,7 +4,7 @@
 // ADIMENSIONAL
 // {
 //    dy(x)/dx = -(y(x) - 1) + z(x)
-//    if y(x) >= yth => y(x) -> yreset
+//    if y(x) <= yth => y(x) -> yreset
 // }
 
 // Forward Euler method
@@ -295,4 +295,26 @@ double int_lif::utils::mae(const std::vector<double>& vec1, const std::vector<do
 	double res = 0.;
 	for(auto it1 = vec1.begin(), it2 = vec2.begin(); it1 != vec1.end() && it2 != vec2.end(); it1++, it2++) res += abs((*it1)-(*it2));
 	return res / vec1.size();
+}
+
+double int_lif::utils::vcf(const std::vector<double>& vec1, const std::vector<double>& vec2, double delta) {
+	double res = 0.;
+	for(auto it1 = vec1.begin(), it2 = vec2.begin(); it1 != vec1.end() && it2 != vec2.end(); it1++, it2++) res += 1./(1.+pow(((*it1)-(*it2))/delta,2));
+	return res / vec1.size();
+}
+
+double int_lif::utils::scf(const std::vector<double>& spkt1, const std::vector<double>& spkt2, double delta, double simtime) {
+	double nu_delta = 2. * spkt1.size() / simtime * delta;
+	int Ncoinc = 0;
+	for(auto it1 = spkt1.begin(); it1 != spkt1.end(); it1++) {
+		auto it2 = spkt2.begin();
+		bool found = false;
+		while(it2 != spkt2.end() && !found) {
+			if(abs((*it1)-(*it2)) <= delta) found = true;
+			it2++;
+		}
+		if(found) Ncoinc++;
+	}
+	double res = (Ncoinc - nu_delta * spkt2.size()) * 2 / (spkt1.size() + spkt2.size()) / (1. - nu_delta);
+	return res;
 }

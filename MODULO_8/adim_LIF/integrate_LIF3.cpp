@@ -47,7 +47,7 @@ int main() {
 	// int numz = 25;
 	// std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
 	// sine_wave
-	double periodz = 1., phasez = 0., offsetz = 0.;
+	double periodz = 1., phasez = 0., offsetz = -0.5;
 	std::vector<double> z = int_lif::currents::sine_wave(N, h, periodz, az, phasez, offsetz);
 	std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, h/2, periodz, az, phasez, offsetz);
 	/* double meanz = -0.10, variancez = 0.0001;
@@ -146,21 +146,29 @@ int main() {
 	std::cout << "fwdEuler - benchmark :" << std::endl;
 	std::cout << "mse = " << int_lif::utils::mse(y1,y_bench) << std::endl;
 	std::cout << "mae = " << int_lif::utils::mae(y1,y_bench) << std::endl;
+	std::cout << "vcf = " << int_lif::utils::vcf(y1,y_bench,0.2) << std::endl;
+	std::cout << "scf = " << int_lif::utils::scf(spkt1,spkt_bench,0.2,simtime) << std::endl;
 	std::cout << std::endl;
 	
 	std::cout << "bwdEuler - benchmark :" << std::endl;
 	std::cout << "mse = " << int_lif::utils::mse(y2,y_bench) << std::endl;
 	std::cout << "mae = " << int_lif::utils::mae(y2,y_bench) << std::endl;
+	std::cout << "vcf = " << int_lif::utils::vcf(y2,y_bench,0.2) << std::endl;
+	std::cout << "scf = " << int_lif::utils::scf(spkt2,spkt_bench,0.2,simtime) << std::endl;
 	std::cout << std::endl;
 	
 	std::cout << "Heun - benchmark :" << std::endl;
 	std::cout << "mse = " << int_lif::utils::mse(y3,y_bench) << std::endl;
 	std::cout << "mae = " << int_lif::utils::mae(y3,y_bench) << std::endl;
+	std::cout << "vcf = " << int_lif::utils::vcf(y3,y_bench,0.2) << std::endl;
+	std::cout << "scf = " << int_lif::utils::scf(spkt3,spkt_bench,0.2,simtime) << std::endl;
 	std::cout << std::endl;
 	
 	std::cout << "RK4 - benchmark :" << std::endl;
 	std::cout << "mse = " << int_lif::utils::mse(y4,y_bench) << std::endl;
 	std::cout << "mae = " << int_lif::utils::mae(y4,y_bench) << std::endl;
+	std::cout << "vcf = " << int_lif::utils::vcf(y4,y_bench,0.2) << std::endl;
+	std::cout << "scf = " << int_lif::utils::scf(spkt4,spkt_bench,0.2,simtime) << std::endl;
 	std::cout << std::endl;
 	
 	addToMultigraph(multigraph, legend, x_bench_tmp, y_bench_tmp, N_bench, kBlack, "benchmark", "l", "L");
@@ -213,11 +221,11 @@ int main() {
 	
 	textIo::textOut("LIF3_bench_h_"+std::to_string(h_bench)+".txt", '\t', '#', "x_bench\tz_bench", 2*N_bench-1, false, x_z_bench, z_bench);
 	
-	double res = 0.;
+	/* double res = 0.;
 	for(auto it1 = y1.begin(), it2 = y_bench.begin(); it1 != y1.end() && it2 != y_bench.end(); it1++, it2++) {
 		std::cout << *it1 << " - " << *it2 << " -> " << abs((*it1)-(*it2));
 		res += abs((*it1)-(*it2));
 		std::cout << " -> " << res << std::endl;
-	}
+	} */
 	
 }

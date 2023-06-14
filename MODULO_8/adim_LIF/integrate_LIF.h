@@ -82,6 +82,10 @@ namespace int_lif {
 		double mse(const std::vector<double>& vec1, const std::vector<double>& vec2);
 		
 		double mae(const std::vector<double>& vec1, const std::vector<double>& vec2);
+		
+		double vcf(const std::vector<double>& vec1, const std::vector<double>& vec2, double delta);
+		
+		double scf(const std::vector<double>& spkt1, const std::vector<double>& spkt2, double delta, double simtime);
 
 	}
 
