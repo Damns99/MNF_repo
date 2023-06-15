@@ -45,13 +45,13 @@ int main() {
 		0.7, // yth
 		1.,  // yreset
 	};
-	double simtime = 1e2;
+	double simtime = 1e1;
 	double az = -1.;
 	// double startz = 5, durz = 50, intz = 20;
 	// int numz = 25;
 	// std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
 	// double periodz = 40, phasez = 3.923, offsetz = -0.20;
-	double periodz = 1., phasez = 0., offsetz = 0.;
+	double periodz = 1., phasez = 0., offsetz = -0.5;
 	double x0 = 0.;
 	double y0 = 1.;
 	
@@ -68,6 +68,9 @@ int main() {
 	std::vector<double> msevec1, msevec2, msevec3, msevec4;
 	std::vector<double> maevec1, maevec2, maevec3, maevec4;
 	std::vector<double> finerrvec1, finerrvec2, finerrvec3, finerrvec4;
+	std::vector<double> vcfvec1, vcfvec2, vcfvec3, vcfvec4;
+	std::vector<double> scfvec1, scfvec2, scfvec3, scfvec4;
+	double vcfdelta = 0.2, scfdelta = 0.2;
 	
 	// Benchmark
 	int N_bench = 1e8;
@@ -85,10 +88,11 @@ int main() {
 		std::vector<double> z = int_lif::currents::sine_wave(N, h, periodz, az, phasez, offsetz);
 		std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, h/2, periodz, az, phasez, offsetz);
 		std::vector<double> y1, y2, y3, y4;
-		y1 = int_lif::fwdEuler(y0, h, N, z, params);
-		y2 = int_lif::bwdEuler(y0, h, N, z, params);
-		y3 = int_lif::Heun(y0, h, N, z, params);
-		y4 = int_lif::RK4(y0, h, N, zRK4, params);
+		std::vector<double> spkt1, spkt2, spkt3, spkt4;
+		y1 = int_lif::fwdEuler(y0, h, N, z, params, &spkt1);
+		y2 = int_lif::bwdEuler(y0, h, N, z, params, &spkt2);
+		y3 = int_lif::Heun(y0, h, N, z, params, &spkt3);
+		y4 = int_lif::RK4(y0, h, N, zRK4, params, &spkt4);
 		std::vector<double> y_bench(N);
 		for(int i = 0; i < N; i++) y_bench[i] = y_bench_tmp[int((N_bench-1.)/(N-1.)*i)];
 		/* for(int i = 0; i < N; i++) {
@@ -109,6 +113,14 @@ int main() {
 		finerrvec2.push_back(abs(y2[N-1] - y_bench[N-1]));
 		finerrvec3.push_back(abs(y3[N-1] - y_bench[N-1]));
 		finerrvec4.push_back(abs(y4[N-1] - y_bench[N-1]));
+		vcfvec1.push_back(1-int_lif::utils::vcf(y1,y_bench,vcfdelta));
+		vcfvec2.push_back(1-int_lif::utils::vcf(y2,y_bench,vcfdelta));
+		vcfvec3.push_back(1-int_lif::utils::vcf(y3,y_bench,vcfdelta));
+		vcfvec4.push_back(1-int_lif::utils::vcf(y4,y_bench,vcfdelta));
+		scfvec1.push_back(int_lif::utils::scf(spkt1,spkt_bench,scfdelta,simtime));
+		scfvec2.push_back(int_lif::utils::scf(spkt2,spkt_bench,scfdelta,simtime));
+		scfvec3.push_back(int_lif::utils::scf(spkt3,spkt_bench,scfdelta,simtime));
+		scfvec4.push_back(int_lif::utils::scf(spkt4,spkt_bench,scfdelta,simtime));
 	}
 	std::cout << std::endl;
 	
@@ -217,6 +229,44 @@ int main() {
 	multigraph4->SetMinimum(pow(10, -6));
 	canvas4->SetLogy();
 	canvas4->SaveAs("finerr_comparison_lxly_2.pdf");
+	
+	TCanvas* canvas5 = new TCanvas("canvas5", "Canvas5", 600, 400);
+	TMultiGraph* multigraph5 = new TMultiGraph();
+	TLegend* legend5 = new TLegend(0.15, 0.75, 0.25, 0.85);
+	
+	addToMultigraph(multigraph5, legend5, Nvec, vcfvec1, Nvec.size(), simtime, 1, "fwdEuler", "p", "");
+	addToMultigraph(multigraph5, legend5, Nvec, vcfvec2, Nvec.size(), simtime, 2, "bwdEuler", "p", "");
+	addToMultigraph(multigraph5, legend5, Nvec, vcfvec3, Nvec.size(), simtime, 3, "Heun", "p", "");
+	addToMultigraph(multigraph5, legend5, Nvec, vcfvec4, Nvec.size(), simtime, 4, "RK4", "p", "");
+	
+	canvas5->cd();
+	canvas5->SetGrid();
+	multigraph5->Draw("AP");
+	multigraph5->SetTitle("VCF comparison;h [];vcf []");
+	legend5->Draw();
+	canvas5->SaveAs("vcf_comparison_2.pdf");
+	multigraph5->GetXaxis()->SetLimits(0.5e-5, 2e0);
+	canvas5->SetLogx();
+	canvas5->SaveAs("vcf_comparison_lx_2.pdf");
+	multigraph5->SetMinimum(pow(10, -16));
+	canvas5->SetLogy();
+	canvas5->SaveAs("vcf_comparison_lxly_2.pdf");
+	
+	TCanvas* canvas6 = new TCanvas("canvas6", "Canvas6", 600, 400);
+	TMultiGraph* multigraph6 = new TMultiGraph();
+	TLegend* legend6 = new TLegend(0.15, 0.75, 0.25, 0.85);
+	
+	addToMultigraph(multigraph6, legend6, Nvec, scfvec1, Nvec.size(), simtime, 1, "fwdEuler", "p", "");
+	addToMultigraph(multigraph6, legend6, Nvec, scfvec2, Nvec.size(), simtime, 2, "bwdEuler", "p", "");
+	addToMultigraph(multigraph6, legend6, Nvec, scfvec3, Nvec.size(), simtime, 3, "Heun", "p", "");
+	addToMultigraph(multigraph6, legend6, Nvec, scfvec4, Nvec.size(), simtime, 4, "RK4", "p", "");
+	
+	canvas6->cd();
+	canvas6->SetGrid();
+	multigraph6->Draw("AP");
+	multigraph6->SetTitle("SCF comparison;h [];scf []");
+	legend6->Draw();
+	canvas6->SaveAs("scf_comparison_2.pdf");
 	
 	std::vector<double> newNvec;
 	for(auto& a : Nvec) newNvec.push_back(a);
