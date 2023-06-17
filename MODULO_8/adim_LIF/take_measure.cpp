@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
 	parser.addOptParameter<int>("numpulses", &numpulses, 0., "current number of pulses (used iff current = pulse_train) [double]");
 	parser.addOptParameter<double>("currmean", &currmean, 0., "current mean (used iff current = white_noise) [double]");
 	parser.addOptParameter<double>("currvariance", &currvariance, 0., "current variance (used iff current = white_noise) [double]");
-    parser.addPosParameter<std::string>("filename", &filename, "out", "output file name with extension [string]");
+    parser.addPosParameter<std::string>("filename", &filename, "out", "output file name without extension [string]");
 	
 	if(parser.parseAll(argc, argv) == HELP_RETURN) return 0;
     parser.kickOff(argv[0]);
@@ -70,9 +70,12 @@ int main(int argc, char* argv[]) {
 	fs::current_path(fs::current_path() / "measures");
 	textIo::textOut(filename+"_x_y.txt", '\t', '#', "N: "+std::to_string(N)+"    h: "+std::to_string(h)+"    method: "+method+"    current: "+current+" "+currparstring, 0, false, x);	
 	textIo::textOut(filename+"_spkt.txt", '\t', '#', "N: "+std::to_string(N)+"    h: "+std::to_string(h)+"    method: "+method+"    current: "+current+" "+currparstring, 0, false, spkt);
+	textIo::textOut(filename+"_x_y.txt", '\t', '#', "x\ty", 0, true, x);
 	
 	while(N > 0) {
-		int NN = N < 1e3 ? N : 1e3;
+		int NN = N < 1e3-1 ? N : 1e3-1;
+		x0 = x[x.size()-1];
+		y0 = y[y.size()-1];
 		
 		std::vector<double> z;
 		if(current == "pulse_train") {
@@ -82,20 +85,20 @@ int main(int argc, char* argv[]) {
 			z = int_lif::currents::white_noise(NN, currmean, currvariance);
 		}
 		else if(current == "sine_wave") {
-			z = int_lif::currents::sine_wave(NN, h, period, amplitude, phase+x[x.size()-1], offset);
+			z = int_lif::currents::sine_wave(NN, h, period, amplitude, phase+x0, offset);
 		}
 		
 		if(method == "fwdEuler") {
-			x = int_lif::utils::linspace(x[x.size()-1], x[x.size()-1] + (NN-1)*h, NN);
-			y = int_lif::fwdEuler(y[y.size()-1], h, NN, z, params, &spkt);
+			x = int_lif::utils::linspace(x0, x0 + (NN-1)*h, NN);
+			y = int_lif::fwdEuler(y0, h, NN, z, params, &spkt, x0);
 		}
 		else if(method == "bwdEuler") {
-			x = int_lif::utils::linspace(x[x.size()-1], x[x.size()-1] + (NN-1)*h, NN);
-			y = int_lif::bwdEuler(y[y.size()-1], h, NN, z, params, &spkt);
+			x = int_lif::utils::linspace(x0, x0 + (NN-1)*h, NN);
+			y = int_lif::bwdEuler(y0, h, NN, z, params, &spkt, x0);
 		}
 		else if(method == "Heun") {
-			x = int_lif::utils::linspace(x[x.size()-1], x[x.size()-1] + (NN-1)*h, NN);
-			y = int_lif::Heun(y[y.size()-1], h, NN, z, params, &spkt);
+			x = int_lif::utils::linspace(x0, x0 + (NN-1)*h, NN);
+			y = int_lif::Heun(y0, h, NN, z, params, &spkt, x0);
 		}
 		else if(method == "RK4") {
 			if(N%2 == 0) {
@@ -103,21 +106,35 @@ int main(int argc, char* argv[]) {
 				return 1;
 			}
 			int N1 = (NN+1)/2;
-			x = int_lif::utils::linspace(x[x.size()-1], x[x.size()-1] + (NN-1)*h, N1);
-			y = int_lif::RK4(y[y.size()-1], h1, N1, z, params, &spkt);
+			x = int_lif::utils::linspace(x0, x0 + (NN-1)*h, N1);
+			y = int_lif::RK4(y0, h1, N1, z, params, &spkt, x0);
+		}
+		else if(method == "intTrapezioidal") {
+			x = int_lif::utils::linspace(x0, x0 + (NN-1)*h, NN);
+			y = int_lif::intTrapezioidal(y0, h, NN, z, params, &spkt, x0);
+		}
+		else if(method == "intSimpson") {
+			if(N%2 == 0) {
+				std::cout << "Error: N must be odd for intSimpson method to work" << N << std::endl;
+				return 1;
+			}
+			int N1 = (NN+1)/2;
+			x = int_lif::utils::linspace(x0, x0 + (NN-1)*h, N1);
+			y = int_lif::intSimpson(y0, h1, N1, z, params, &spkt, x0);
 		}
 		else {
 			std::cout << "Error: invalid method" << std::endl;
 			return 1;
 		}
 	
-		textIo::textOut(filename+"_x_y.txt", '\t', '#', "x\ty", x.size()-1, true, x, y);
-		textIo::textOut(filename+"_spkt.txt", '\t', '#', "spkt", spkt.size(), true, spkt);
+		textIo::textOut(filename+"_x_y.txt", '\t', '#', "", x.size()-1, true, x, y);
 		
-		N -= NN;
+		if(NN > 1) N -= NN-1;
+		else N = 0;
 	}
 	
 	std::vector<double> x_tmp(1,x[x.size()-1]), y_tmp(1,y[y.size()-1]);
-	textIo::textOut(filename+"_x_y.txt", '\t', '#', "x\ty", 1, true, x_tmp, y_tmp);
+	textIo::textOut(filename+"_x_y.txt", '\t', '#', "", 1, true, x_tmp, y_tmp);
+	textIo::textOut(filename+"_spkt.txt", '\t', '#', "spkt", spkt.size(), true, spkt);
 	
 }

@@ -9,7 +9,7 @@
 
 // Forward Euler method
 // dy(n)/dx = (y(n+1) - y(n)) / h
-std::vector<double> int_lif::fwdEuler(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes) {
+std::vector<double> int_lif::fwdEuler(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes, double x0) {
 	double yth = params[0], yreset = params[1];
 	std::vector<double> y(N);
 	y[0] = y0;
@@ -19,7 +19,7 @@ std::vector<double> int_lif::fwdEuler(double y0, double h, int N, std::vector<do
 		if(newy <= yth) {
 			y[n] = yreset;
 			newy = yreset;
-			if(spiketimes != nullptr) spiketimes->push_back(n*h);
+			if(spiketimes != nullptr) spiketimes->push_back(x0+n*h);
 		}
 		else y[n] = newy;
 	}
@@ -42,7 +42,7 @@ double int_lif::fwdEulerLocError(std::vector<double>& y_ref, double h_ref, doubl
 
 // Backward Euler method
 // dy(n)/dx = (y(n) - y(n-1)) / h
-std::vector<double> int_lif::bwdEuler(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes) {
+std::vector<double> int_lif::bwdEuler(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes, double x0) {
 	double yth = params[0], yreset = params[1];
 	std::vector<double> y(N);
 	y[0] = y0;
@@ -52,7 +52,7 @@ std::vector<double> int_lif::bwdEuler(double y0, double h, int N, std::vector<do
 		if(newy <= yth) {
 			y[n] = yreset;
 			newy = yreset;
-			if(spiketimes != nullptr) spiketimes->push_back(n*h);
+			if(spiketimes != nullptr) spiketimes->push_back(x0+n*h);
 		}
 		else y[n] = newy;
 	}
@@ -75,7 +75,7 @@ double int_lif::bwdEulerLocError(std::vector<double>& y_ref, double h_ref, doubl
 
 // Heun method
 // 2 step RK with equal derivative weights and no intermediate steps
-std::vector<double> int_lif::Heun(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes) {
+std::vector<double> int_lif::Heun(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes, double x0) {
 	double yth = params[0], yreset = params[1];
 	double a = h - h*h/2;
 	std::vector<double> y(N);
@@ -86,7 +86,7 @@ std::vector<double> int_lif::Heun(double y0, double h, int N, std::vector<double
 		if(newy <= yth) {
 			y[n] = yreset;
 			newy = yreset;
-			if(spiketimes != nullptr) spiketimes->push_back(n*h);
+			if(spiketimes != nullptr) spiketimes->push_back(x0+n*h);
 		}
 		else y[n] = newy;
 	}
@@ -109,8 +109,8 @@ double int_lif::HeunLocError(std::vector<double>& y_ref, double h_ref, double h,
 }
 
 // RungeKutta4 method
-// I has 2N elements, one every h/2 seconds
-std::vector<double> int_lif::RK4(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes) {
+// z has 2N elements, one every h/2 seconds
+std::vector<double> int_lif::RK4(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes, double x0) {
 	double yth = params[0], yreset = params[1];
 	double a1 = -h*h*h*h/24. + h*h*h/6. - h*h/2. + h, a2 = h*h*h/12. - h*h/3. + 2.*h/3.;
 	std::vector<double> y(N);
@@ -121,7 +121,7 @@ std::vector<double> int_lif::RK4(double y0, double h, int N, std::vector<double>
 		if(newy <= yth) {
 			y[n] = yreset;
 			newy = yreset;
-			if(spiketimes != nullptr) spiketimes->push_back(n*h);
+			if(spiketimes != nullptr) spiketimes->push_back(x0+n*h);
 		}
 		else y[n] = newy;
 	}
@@ -141,6 +141,56 @@ double int_lif::RK4LocError(std::vector<double>& y_ref, double h_ref, double h, 
 		locerrorvec.push_back(abs(newy - y_ref[ii]));
 	}
 	return utils::mean(locerrorvec);
+}
+
+// Trapezioidal method direct integration
+// y(x) = e^-(x-x0) y0 + e^-x int_x0^x (z(xx)+1)e^xx dxx
+std::vector<double> int_lif::intTrapezioidal(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes, double x0) {
+	double yth = params[0], yreset = params[1];
+	std::vector<double> y(N);
+	y[0] = y0;
+	double inty = 0;
+	double newy;
+	int n0 = 0;
+	for(int n = 1; n < N; n++) {
+		inty = inty + h/2 * (exp(x0+(n-1)*h)*(z[n-1]+1) + exp(x0+n*h)*(z[n] + 1));
+		newy = y0*exp(-(n-n0)*h) + exp(-x0-n*h) * inty;
+		if(newy <= yth) {
+			if(spiketimes != nullptr) spiketimes->push_back(x0+n*h);
+			y[n] = yreset;
+			inty = 0;
+			x0 = x0 + (n-n0)*h;
+			y0 = yreset;
+			n0 = n;
+		}
+		else y[n] = newy;
+	}
+	return y;
+}
+
+// Simpson method direct integration
+// y(x) = e^-(x-x0) y0 + e^-x int_x0^x (z(xx)+1)e^xx dxx !!!! z has 2N elements, one every h/2 seconds
+std::vector<double> int_lif::intSimpson(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes, double x0) {
+	double yth = params[0], yreset = params[1];
+	std::vector<double> y(N);
+	y[0] = y0;
+	double inty = 0;
+	double newy;
+	int n0 = 0;
+	for(int n = 1; n < N; n++) {
+		inty = inty + h/3 * (exp(x0+(2*n-2)*h/2)*(z[2*n-2]+1) + 4 * exp(x0+(2*n-1)*h/2)*(z[2*n-1]+1) + exp(x0+2*n*h/2)*(z[2*n] + 1));
+		newy = y0*exp(-(n-n0)*h) + exp(-x0-n*h) * inty;
+		if(newy <= yth) {
+			if(spiketimes != nullptr) spiketimes->push_back(x0+n*h);
+			y[n] = yreset;
+			inty = 0;
+			x0 = x0 + (n-n0)*h;
+			y0 = yreset;
+			n0 = n;
+		}
+		else y[n] = newy;
+	}
+	return y;
 }
 
 // currents
@@ -203,14 +253,16 @@ std::vector<double> int_lif::currents::ou_noise(int n, double mean, double sigma
 // utils
 
 std::vector<double> int_lif::utils::linspace(double x0, double x1, double n = 100) {
-	std::vector<double> res(n);
+	std::vector<double> res(n,x0);
+	if(n==1) return res;
 	double dx = (x1 - x0) / (n-1);
 	for(int ii = 0; ii < n; ii++) res[ii] = x0 + dx * ii;
 	return res;
 }
 
 std::vector<double> int_lif::utils::logspace(double e0, double e1, double n = 100) {
-	std::vector<double> res(n);
+	std::vector<double> res(n,pow(10,e0));
+	if(n==1) return res;
 	double de = (e1 - e0) / (n-1);
 	for(int ii = 0; ii < n; ii++) res[ii] = pow(10, e0 + de * ii);
 	return res;

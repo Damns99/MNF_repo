@@ -35,9 +35,12 @@ integrate_LIF5_2: integrate_LIF5_2.cpp libintegrate_LIF.so
 take_measure: take_measure.cpp libintegrate_LIF.so
 	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o take_measure take_measure.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math -lran2 -lbox_muller -Wno-deprecated
 
-compile: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure
+then_plot: then_plot.cpp libintegrate_LIF.so
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o then_plot then_plot.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math -lran2 -lbox_muller -Wno-deprecated
 
-test: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure
+compile: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot
+
+test: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot
 	./integrate_LIF3
 	./integrate_LIF4
 	./integrate_LIF5

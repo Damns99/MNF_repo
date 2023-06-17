@@ -18,23 +18,31 @@
 namespace int_lif {
 	// Forward Euler method
 	// dV(n)/dt = (V(n+1) - V(n)) / h
-	std::vector<double> fwdEuler(double V0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr);
+	std::vector<double> fwdEuler(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
 	double fwdEulerLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 
 	// Backward Euler method
 	// dV(n)/dt = (V(n) - V(n-1)) / h
-	std::vector<double> bwdEuler(double V0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr);
+	std::vector<double> bwdEuler(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
 	double bwdEulerLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 
 	// Heun method
 	// 
-	std::vector<double> Heun(double V0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr);
+	std::vector<double> Heun(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
 	double HeunLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 
 	// RungeKutta4 method
 	// 
-	std::vector<double> RK4(double V0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr);
+	std::vector<double> RK4(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
 	double RK4LocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
+	
+	// Trapezioidal method direct integration
+	// y(x) = e^-(x-x0) y0 + e^-x int_x0^x (z(xx)+1)e^xx dxx
+	std::vector<double> intTrapezioidal(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
+
+	// Simpson method direct integration
+	// y(x) = e^-(x-x0) y0 + e^-x int_x0^x (z(xx)+1)e^xx dxx
+	std::vector<double> intSimpson(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
 
 	// currents
 	namespace currents {
