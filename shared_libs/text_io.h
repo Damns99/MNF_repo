@@ -132,7 +132,7 @@ namespace textIo {
 		if (append) outfile.open(filename, std::fstream::out | std::fstream::app);
 		else outfile.open(filename, std::fstream::out);
 		
-		outfile << ignore << header << '\n';
+		if(header != "") outfile << ignore << header << '\n';
 		
 		for(unsigned int ind = 0; ind < N; ind++) details::textOutSlave(outfile, delim, ind, args ...);
 		
