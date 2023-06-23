@@ -9,26 +9,29 @@ LIBPATH := ../shared_libs
 all: compile
 
 bcv_test: bcv_test.cpp bound_cond_vecs.h
-	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o bcv_test bcv_test.cpp -lm -O2
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o bcv_test bcv_test.cpp -lm -O2 -Wno-deprecated
 
 der_test: der_test.cpp bound_cond_vecs.h derivators.h
-	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o der_test der_test.cpp -lm -O2 -lmyfft
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o der_test der_test.cpp -lm -O2 -lmyfft -Wno-deprecated
 
 derivator_scaling: derivator_scaling.cpp bound_cond_vecs.h derivators.h
-	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o derivator_scaling derivator_scaling.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o derivator_scaling derivator_scaling.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -Wno-deprecated
 
 int_test: int_test.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
-	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_test int_test.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_test int_test.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -Wno-deprecated
 
 int_grav_waves: int_grav_waves.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
-	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_grav_waves int_grav_waves.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_grav_waves int_grav_waves.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -Wno-deprecated
 
 cn_linear: cn_linear.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
-	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o cn_linear cn_linear.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -ltridiag
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o cn_linear cn_linear.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -ltridiag -Wno-deprecated
 
-compile: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear
+int_HH: int_HH.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_HH int_HH.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -ltridiag -Wno-deprecated
 
-test: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear
+compile: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear int_HH
+
+test: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear int_HH
 	./bcv_test
 	./der_test
 	./derivator_scaling
