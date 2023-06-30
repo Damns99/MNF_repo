@@ -29,9 +29,12 @@ cn_linear: cn_linear.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots
 int_HH: int_HH.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
 	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_HH int_HH.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -ltridiag -Wno-deprecated
 
-compile: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear int_HH
+int_test_2: int_test_2.cpp bound_cond_vecs.h derivators.h integrators.h wave_plots.h
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -I $(INCLUDEPATH) -o int_test_2 int_test_2.cpp -lm -O2 $(ROOT_CONFIG) -lmyfft -ltridiag -Wno-deprecated
 
-test: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear int_HH
+compile: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear int_HH int_test_2
+
+test: bcv_test der_test derivator_scaling int_test int_grav_waves cn_linear int_HH int_test_2
 	./bcv_test
 	./der_test
 	./derivator_scaling

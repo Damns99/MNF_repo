@@ -90,7 +90,7 @@ namespace waveplots {
 			multigraph->Draw("APL");
 			legend->Draw();
 			canvas2->SaveAs((filename + "_fl.pdf").c_str());
-			canvas2->SaveSource((filename + "_fl.cpp").c_str());
+			//canvas2->SaveSource((filename + "_fl.cpp").c_str());
 			
 			delete canvas2;
 			delete multigraph;
@@ -117,7 +117,7 @@ namespace waveplots {
 		else hist->Draw("COLZ0");
 		
 		canvas->SaveAs((filename + ".pdf").c_str());
-		canvas->SaveSource((filename + ".cpp").c_str());
+		//canvas->SaveSource((filename + ".cpp").c_str());
 		
 		delete canvas;
 		delete hist;
@@ -152,7 +152,7 @@ namespace waveplots {
 		multigraph->Draw("APL");
 		legend->Draw();
 		canvas2->SaveAs((filename + "_fl.pdf").c_str());
-		canvas2->SaveSource((filename + "_fl.cpp").c_str());
+		//canvas2->SaveSource((filename + "_fl.cpp").c_str());
 		
 		delete canvas2;
 		delete multigraph;
@@ -187,7 +187,7 @@ namespace waveplots {
 			else hist->Draw("COLZ");
 			
 			canvas->SaveAs((filename + ".pdf").c_str());
-			canvas->SaveSource((filename + ".cpp").c_str());
+			//canvas->SaveSource((filename + ".cpp").c_str());
 			
 			delete canvas;
 			delete hist;
@@ -228,7 +228,7 @@ namespace waveplots {
 			multigraph->Draw("APL");
 			legend->Draw();
 			canvas2->SaveAs((filename + "_fl.pdf").c_str());
-			canvas2->SaveSource((filename + "_fl.cpp").c_str());
+			//canvas2->SaveSource((filename + "_fl.cpp").c_str());
 			
 			delete canvas2;
 			delete multigraph;

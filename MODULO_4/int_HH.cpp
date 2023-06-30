@@ -4,12 +4,14 @@
 #include <math.h>
 #include <filesystem>
 namespace fs = std::filesystem;
+#include <fstream>
 
 #include "bound_cond_vecs.h"
 #include "derivators.h"
 #include "integrators.h"
 #include "wave_plots.h"
 #include "tridiag.h"
+#include "mystyle.h"
 
 void inline printPercent(int ii, int& percent, const int& N, std::string prefix = "") {
 	if(100 * ii / N > percent) {
@@ -19,7 +21,7 @@ void inline printPercent(int ii, int& percent, const int& N, std::string prefix 
 	}
 }
 
-std::vector<bound_cond_vecs::BoundCondVec<double>> HH_FTCS(double t0, double dt, double nsteps, const bound_cond_vecs::BoundCondVec<double> & x, const bound_cond_vecs::BoundCondVec<double> & u0, const bound_cond_vecs::BoundCondVec<double> & m0, const bound_cond_vecs::BoundCondVec<double> & h0, const bound_cond_vecs::BoundCondVec<double> & n0, double pars[8]) {
+std::vector<bound_cond_vecs::BoundCondVec<double>> HH_FTCS(double t0, double dt, double nsteps, const bound_cond_vecs::BoundCondVec<double> & x, const bound_cond_vecs::BoundCondVec<double> & u0, const bound_cond_vecs::BoundCondVec<double> & m0, const bound_cond_vecs::BoundCondVec<double> & h0, const bound_cond_vecs::BoundCondVec<double> & n0, double pars[8], std::vector<bound_cond_vecs::BoundCondVec<double>> & m, std::vector<bound_cond_vecs::BoundCondVec<double>> & h, std::vector<bound_cond_vecs::BoundCondVec<double>> & n) {
 	double cm = pars[0], D_2_R = pars[1], g_na = pars[2], e_na = pars[3], g_k = pars[4], e_k = pars[5], g_i = pars[6], e_i = pars[7];
 	int N = x.len();
 	double dx = x[1] - x[0];
@@ -29,13 +31,10 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> HH_FTCS(double t0, double dt,
 	std::vector<double> t;
 	t.reserve(nsteps + 1);
 	t.push_back(t0);
-	std::vector<bound_cond_vecs::BoundCondVec<double>> m;
 	m.reserve(nsteps + 1);
 	m.push_back(n0);
-	std::vector<bound_cond_vecs::BoundCondVec<double>> h;
 	h.reserve(nsteps + 1);
 	h.push_back(h0);
-	std::vector<bound_cond_vecs::BoundCondVec<double>> n;
 	n.reserve(nsteps + 1);
 	n.push_back(n0);
 	
@@ -90,7 +89,7 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> HH_FTCS(double t0, double dt,
 	return u;
 }
 
-std::vector<bound_cond_vecs::BoundCondVec<double>> HH_FTCS_implicit(double t0, double dt, double nsteps, const bound_cond_vecs::BoundCondVec<double> & x, const bound_cond_vecs::BoundCondVec<double> & u0, const bound_cond_vecs::BoundCondVec<double> & m0, const bound_cond_vecs::BoundCondVec<double> & h0, const bound_cond_vecs::BoundCondVec<double> & n0, double pars[8]) {
+std::vector<bound_cond_vecs::BoundCondVec<double>> HH_FTCS_implicit(double t0, double dt, double nsteps, const bound_cond_vecs::BoundCondVec<double> & x, const bound_cond_vecs::BoundCondVec<double> & u0, const bound_cond_vecs::BoundCondVec<double> & m0, const bound_cond_vecs::BoundCondVec<double> & h0, const bound_cond_vecs::BoundCondVec<double> & n0, double pars[8], std::vector<bound_cond_vecs::BoundCondVec<double>> & m, std::vector<bound_cond_vecs::BoundCondVec<double>> & h, std::vector<bound_cond_vecs::BoundCondVec<double>> & n) {
 	double cm = pars[0], D_2_R = pars[1], g_na = pars[2], e_na = pars[3], g_k = pars[4], e_k = pars[5], g_i = pars[6], e_i = pars[7];
 	int N = x.len();
 	double dx = x[1] - x[0];
@@ -100,13 +99,10 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> HH_FTCS_implicit(double t0, d
 	std::vector<double> t;
 	t.reserve(nsteps + 1);
 	t.push_back(t0);
-	std::vector<bound_cond_vecs::BoundCondVec<double>> m;
 	m.reserve(nsteps + 1);
 	m.push_back(n0);
-	std::vector<bound_cond_vecs::BoundCondVec<double>> h;
 	h.reserve(nsteps + 1);
 	h.push_back(h0);
-	std::vector<bound_cond_vecs::BoundCondVec<double>> n;
 	n.reserve(nsteps + 1);
 	n.push_back(n0);
 	
@@ -189,7 +185,7 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> HH_CN(double t0, double dt, d
 	int percent = 0;
 	for(int ii = 1; ii <= nsteps; ii++) {
 		printPercent(ii, percent, nsteps, "");
-		bound_cond_vecs::BoundCondVec<double> new_u(N, x.getMode()), new_m(N, x.getMode()), new_h(N, x.getMode()), new_n(N, x.getMode());
+		bound_cond_vecs::BoundCondVec<double> new_u(N, x.getMode(), u0.getPlaceholder()), new_m(N, x.getMode(), m0.getPlaceholder()), new_h(N, x.getMode(), h0.getPlaceholder()), new_n(N, x.getMode(), n0.getPlaceholder());
 		double a[N], b[N], c[N], d[N], uu[N];
 		
 		for(int jj = 0; jj < N; jj++) {
@@ -224,9 +220,13 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> HH_CN(double t0, double dt, d
 			
 			double F_j = g_na*mm*mm*mm*hh*(e_na-V_j) + g_k*nn*nn*nn*nn*(e_k-V_j) + g_i*(e_i-V_j);
 			
-			a[jj] = - eta_1 * eta_2 / 2; if(x.getMode() == ABSORBANT_BC && jj == 0) a[jj] = 0; if(x.getMode() == REFLECTIVE_BC && jj == 0) a[jj] = -a[jj];
+			a[jj] = - eta_1 * eta_2 / 2;
+			if(x.getMode() == ABSORBANT_BC && jj == 0) a[jj] = 0;
+			if(x.getMode() == REFLECTIVE_BC && jj == 0) a[jj] = 0; if(x.getMode() == REFLECTIVE_BC && jj == N-1) a[jj] = 2*a[jj];
 			b[jj] = 1 + eta_1 * eta_2;
-			c[jj] = - eta_1 * eta_2 / 2; if(x.getMode() == ABSORBANT_BC && jj == N-1) c[jj] = 0; if(x.getMode() == REFLECTIVE_BC && jj == N-1) c[jj] = -c[jj];
+			c[jj] = - eta_1 * eta_2 / 2;
+			if(x.getMode() == ABSORBANT_BC && jj == N-1) c[jj] = 0;
+			if(x.getMode() == REFLECTIVE_BC && jj == 0) c[jj] = 2*c[jj]; if(x.getMode() == REFLECTIVE_BC && jj == N-1) c[jj] = 0;
 			d[jj] = eta_1 * F_j + V_j * (1 - eta_1 * eta_2) + eta_1 * eta_2 / 2 * (u[ii-1][jj-1] + u[ii-1][jj+1]);
 			
 		}
@@ -266,9 +266,13 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> HH_CN(double t0, double dt, d
 			
 			double F_j = g_na*mm*mm*mm*hh*(e_na-V_j) + g_k*nn*nn*nn*nn*(e_k-V_j) + g_i*(e_i-V_j);
 			
-			a[jj] = - eta_1 * eta_2 / 2; if(x.getMode() == ABSORBANT_BC && jj == 0) a[jj] = 0; if(x.getMode() == REFLECTIVE_BC && jj == 0) a[jj] = -a[jj];
+			a[jj] = - eta_1 * eta_2 / 2;
+			if(x.getMode() == ABSORBANT_BC && jj == 0) a[jj] = 0;
+			if(x.getMode() == REFLECTIVE_BC && jj == 0) a[jj] = 0; if(x.getMode() == REFLECTIVE_BC && jj == N-1) a[jj] = 2*a[jj];
 			b[jj] = 1 + eta_1 * eta_2;
-			c[jj] = - eta_1 * eta_2 / 2; if(x.getMode() == ABSORBANT_BC && jj == N-1) c[jj] = 0; if(x.getMode() == REFLECTIVE_BC && jj == N-1) c[jj] = -c[jj];
+			c[jj] = - eta_1 * eta_2 / 2;
+			if(x.getMode() == ABSORBANT_BC && jj == N-1) c[jj] = 0;
+			if(x.getMode() == REFLECTIVE_BC && jj == 0) c[jj] = 2*c[jj]; if(x.getMode() == REFLECTIVE_BC && jj == N-1) c[jj] = 0;
 			d[jj] = eta_1 * F_j + V_j * (1 - eta_1 * eta_2) + eta_1 * eta_2 / 2 * (u[ii-1][jj-1] + u[ii-1][jj+1]);
 			
 		}
@@ -287,7 +291,7 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> HH_CN(double t0, double dt, d
 
 int main() {
 	double t0 = 0., dt = 0.01;
-	int nsteps = 10000, nx = 65;
+	int nsteps = 5000, nx = 101;
 	double x0 = -1.*100., dx = 2.*100. / (nx-1);
 	bound_cond_vecs::BoundCondVec<double> x = integrators::linspace(x0, x0 + (nx-1) * dx, nx, PERIODIC_BC);
 	
@@ -302,7 +306,7 @@ int main() {
 		-54.402 // e_i [mV]		
 	};
 	
-	bound_cond_vecs::BoundCondVec<double> u0(nx, x.getMode()), m0(nx, x.getMode()), h0(nx, x.getMode()), n0(nx, x.getMode());
+	bound_cond_vecs::BoundCondVec<double> u0(nx, x.getMode(), -65), m0(nx, x.getMode()), h0(nx, x.getMode()), n0(nx, x.getMode());
 	std::vector<bound_cond_vecs::BoundCondVec<double>> m, h, n;
 	for(int ii = 0; ii < nx; ii++) {
 		u0[ii] = -65;
@@ -322,21 +326,165 @@ int main() {
 			h0[ii] = h1[nskip][ii];
 			n0[ii] = n1[nskip][ii];
 		}
+		u0.setPlaceholder(u0[0]);
+		m0.setPlaceholder(m0[0]);
+		h0.setPlaceholder(h0[0]);
+		n0.setPlaceholder(n0[0]);
 	}
+	double mu = 0.5*100, sigma = 0.4*100;
 	for(int ii = 0; ii < nx; ii++) {
-		u0[ii] += exp(- (x[ii]-0.5*100) * (x[ii]-0.5*100) / (2. * 0.1*100 * 0.1*100))*-30; // gaussian
-		// u0[ii] += sin(2. * M_PI * 1. * x[ii]/100.)*10; // cosine
+		u0[ii] += exp(- (x[ii]-mu) * (x[ii]-mu) / (2. * sigma * sigma))*-40; // gaussian
+		// u0[ii] += sin(2. * M_PI * 1. * x[ii]/50.)*-8; // cosine
 	}
 	
-	// auto u1 = HH_FTCS_implicit(t0, dt, nsteps, x, u0, m0, h0, n0, pars);
+	// auto u1 = HH_FTCS_implicit(t0, dt, nsteps, x, u0, m0, h0, n0, pars, m, h, n);
 	auto u1 = HH_CN(t0, dt, nsteps, x, u0, m0, h0, n0, pars, m, h, n);
 	std::cout << std::endl;
 	
 	fs::current_path(fs::current_path() / "measures");
 	double minu = -100, maxu = 50;
 	
-	waveplots::plot(u1, t0, dt, nsteps+1, x0, dx, nx, "HH_test_SURF", SURF_PLOT, minu, maxu);
+	// waveplots::plot(u1, t0, dt, nsteps+1, x0, dx, nx, "HH_test_SURF", SURF_PLOT, minu, maxu);
 	waveplots::plot(u1, t0, dt, nsteps+1, x0, dx, nx, "HH_test_CONT", CONT_PLOT, minu, maxu);
 	waveplots::plot(u1, t0, dt, nsteps+1, x0, dx, nx, "HH_test_COLZ", COLZ_PLOT, minu, maxu);
 	// waveplots::plotFFT(u1, t0, dt, nsteps, "HH_test_FFT_SURF", SURF_PLOT);
+	
+	double u1_slice[nsteps], m_slice[nsteps], h_slice[nsteps], n_slice[nsteps], time[nsteps];
+	int j_slice = nx*1/2;
+	for(int ii = 0; ii < nsteps; ii++) {
+		u1_slice[ii] = u1[ii][j_slice];
+		m_slice[ii] = m[ii][j_slice];
+		h_slice[ii] = h[ii][j_slice];
+		n_slice[ii] = n[ii][j_slice];
+		time[ii] = t0 + ii*dt;
+	}
+	int nshift = 1;
+	double u1_diff[nsteps-nshift], t_u1_max, u1_max = u1[0][j_slice];
+	for(int ii = 0; ii < nsteps-nshift; ii++) {
+		u1_diff[ii] = u1[ii+nshift][j_slice] - u1[ii][j_slice];
+		if(ii > 0) if(u1_diff[ii-1] > 0 && u1_diff[ii] <= 0 && u1_max < u1[ii][j_slice]) {
+			t_u1_max = t0 + ii*dt;
+			u1_max = u1[ii][j_slice];
+		}
+	}
+	std::cout << "(t_max [ms], V_max [mV]) = (" << t_u1_max << ", " << u1_max << ")" << std::endl;
+	
+	myStyle();
+	
+	TCanvas* canvas1 = new TCanvas("canvas1", "Canvas1", 600, 400);
+	TGraph* graphu1 = new TGraph(nsteps, time, u1_slice);
+	graphu1->SetMarkerColor(1);
+	graphu1->SetLineColor(1);
+	graphu1->SetTitle(("x = "+std::to_string(x[j_slice])+" cm;time [ms];V [mV]").c_str());
+	canvas1->cd();
+	canvas1->SetGrid();
+	graphu1->Draw("AP");
+	canvas1->SaveAs("HH_test_u1_slice.pdf");
+	
+	TCanvas* canvas2 = new TCanvas("canvas2", "Canvas2", 600, 400);
+	TMultiGraph* multigraph = new TMultiGraph();
+	TLegend* legend = new TLegend(0.75, 0.75, 0.85, 0.85);
+	TGraph* graphm = new TGraph(nsteps, time, m_slice);
+	graphm->SetMarkerColor(2);
+	graphm->SetLineColor(2);
+	multigraph->Add(graphm);
+	legend->AddEntry(graphm, "m", "p");
+	TGraph* graphh = new TGraph(nsteps, time, h_slice);
+	graphh->SetMarkerColor(3);
+	graphh->SetLineColor(3);
+	multigraph->Add(graphh);
+	legend->AddEntry(graphh, "h", "p");
+	TGraph* graphn = new TGraph(nsteps, time, n_slice);
+	graphn->SetMarkerColor(4);
+	graphn->SetLineColor(4);
+	multigraph->Add(graphn);
+	legend->AddEntry(graphn, "n", "p");
+	multigraph->SetTitle(("x = "+std::to_string(x[j_slice])+" cm;time [ms];[mV]").c_str());
+	canvas2->cd();
+	canvas2->SetGrid();
+	multigraph->Draw("AP");
+	legend->Draw();
+	canvas2->SaveAs("HH_test_mhn_slice.pdf");
+	
+	TCanvas* canvas3 = new TCanvas("canvas3", "Canvas3", 600, 400);
+	TMultiGraph* multigraph2 = new TMultiGraph();
+	TLegend* legend2 = new TLegend(0.75, 0.75, 0.85, 0.85);
+	TGraph* graphm2 = new TGraph(nsteps, u1_slice, m_slice);
+	graphm2->SetMarkerColor(2);
+	graphm2->SetLineColor(2);
+	multigraph2->Add(graphm2);
+	legend2->AddEntry(graphm2, "m", "p");
+	TGraph* graphh2 = new TGraph(nsteps, u1_slice, h_slice);
+	graphh2->SetMarkerColor(3);
+	graphh2->SetLineColor(3);
+	multigraph2->Add(graphh2);
+	legend2->AddEntry(graphh2, "h", "p");
+	TGraph* graphn2 = new TGraph(nsteps, u1_slice, n_slice);
+	graphn2->SetMarkerColor(4);
+	graphn2->SetLineColor(4);
+	multigraph2->Add(graphn2);
+	legend2->AddEntry(graphn2, "n", "p");
+	multigraph2->SetTitle(("x = "+std::to_string(x[j_slice])+" cm;u1 [mV];[mV]").c_str());
+	canvas3->cd();
+	canvas3->SetGrid();
+	multigraph2->Draw("AP");
+	legend2->Draw();
+	canvas3->SaveAs("HH_test_u1_vs_mhn_slice.pdf");
+	
+	std::ofstream outfile;
+	outfile.open("HH_test_u1.txt", std::fstream::out);
+	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
+	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	for(int ii = 0; ii < nsteps; ii++) {
+		for(int jj = 0; jj < nx; jj++) outfile << u1[ii][jj] << " ";
+		outfile << std::endl;
+	}
+	outfile.close();
+	outfile.open("HH_test_m.txt", std::fstream::out);
+	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
+	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	for(int ii = 0; ii < nsteps; ii++) {
+		for(int jj = 0; jj < nx; jj++) outfile << m[ii][jj] << " ";
+		outfile << std::endl;
+	}
+	outfile.close();
+	outfile.open("HH_test_h.txt", std::fstream::out);
+	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
+	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	for(int ii = 0; ii < nsteps; ii++) {
+		for(int jj = 0; jj < nx; jj++) outfile << h[ii][jj] << " ";
+		outfile << std::endl;
+	}
+	outfile.close();
+	outfile.open("HH_test_n.txt", std::fstream::out);
+	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
+	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	for(int ii = 0; ii < nsteps; ii++) {
+		for(int jj = 0; jj < nx; jj++) outfile << n[ii][jj] << " ";
+		outfile << std::endl;
+	}
+	outfile.close();
+	
+	outfile.open("HH_test_max.txt", std::fstream::out);
+	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
+	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	outfile << "# tmax\tVmax" << std::endl;
+	for(int jj = 0; jj < nx; jj++) {
+		double u1_diff, t_u1_max, u1_max = u1[0][jj];
+		for(int ii = 0; ii < nsteps-1; ii++) {
+			double u1_diff_tmp = u1[ii+1][jj] - u1[ii][jj];
+			if(ii > 0) if(u1_diff > 0 && u1_diff_tmp <= 0 && u1_max < u1[ii][jj]) {
+				t_u1_max = t0 + ii*dt;
+				u1_max = u1[ii][jj];
+			}
+			u1_diff = u1_diff_tmp;
+		}
+		outfile << t_u1_max << "\t" << u1_max << std::endl;
+	}
+	outfile.close();
 }

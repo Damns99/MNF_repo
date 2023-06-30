@@ -85,8 +85,8 @@ int main() {
 	bound_cond_vecs::BoundCondVec<double> u0_tmp(nx, x.getMode());
 	for(int ii = 0; ii < nx; ii++) {
 		
-		u0_tmp[ii] = sin(2. * M_PI * 1. * x[ii]); // cosine
-		// u0_tmp[ii] = exp(- (x[ii]) * (x[ii]) / (2. * 0.01 * 0.01)); // gaussian
+		// u0_tmp[ii] = sin(2. * M_PI * 1. * x[ii]); // cosine
+		u0_tmp[ii] = exp(- (x[ii]) * (x[ii]) / (2. * 0.01 * 0.01)); // gaussian
 		
 	}
 	u0.push_back(u0_tmp);
