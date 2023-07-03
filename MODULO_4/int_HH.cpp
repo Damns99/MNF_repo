@@ -12,6 +12,7 @@ namespace fs = std::filesystem;
 #include "wave_plots.h"
 #include "tridiag.h"
 #include "mystyle.h"
+#include "cmdline_parser.h"
 
 void inline printPercent(int ii, int& percent, const int& N, std::string prefix = "") {
 	if(100 * ii / N > percent) {
@@ -289,9 +290,16 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> HH_CN(double t0, double dt, d
 	return u;
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+	double sigma, ampl;
+	cmdlineParser::CmdlineParser parser;
+    parser.addOptParameter<double>("sigma", &sigma, 0.35*100, "[double] StdDev of the gaussian starting condition.");
+    parser.addOptParameter<double>("ampl", &ampl, -5500, "[double] Amplitude of the gaussian starting condition.");
+	if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
+    parser.kickOff(argv[0]);
+	
 	double t0 = 0., dt = 0.01;
-	int nsteps = 5000, nx = 101;
+	int nsteps = 5000, nx = 301;
 	double x0 = -1.*100., dx = 2.*100. / (nx-1);
 	bound_cond_vecs::BoundCondVec<double> x = integrators::linspace(x0, x0 + (nx-1) * dx, nx, PERIODIC_BC);
 	
@@ -331,9 +339,10 @@ int main() {
 		h0.setPlaceholder(h0[0]);
 		n0.setPlaceholder(n0[0]);
 	}
-	double mu = 0.5*100, sigma = 0.4*100;
+	double mu = 0.2*100;
 	for(int ii = 0; ii < nx; ii++) {
-		u0[ii] += exp(- (x[ii]-mu) * (x[ii]-mu) / (2. * sigma * sigma))*-40; // gaussian
+		// u0[ii] += (x[ii]-mu) * (x[ii]-mu) < sigma * sigma ? -30 : 0; // constant
+		u0[ii] += exp(- (x[ii]-mu) * (x[ii]-mu) / (2. * sigma * sigma)) / (sigma * 2 * M_PI) * ampl; // gaussian
 		// u0[ii] += sin(2. * M_PI * 1. * x[ii]/50.)*-8; // cosine
 	}
 	
@@ -435,7 +444,7 @@ int main() {
 	outfile.open("HH_test_u1.txt", std::fstream::out);
 	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
 	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
-	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << " ampl= " << ampl << std::endl;
 	for(int ii = 0; ii < nsteps; ii++) {
 		for(int jj = 0; jj < nx; jj++) outfile << u1[ii][jj] << " ";
 		outfile << std::endl;
@@ -444,7 +453,7 @@ int main() {
 	outfile.open("HH_test_m.txt", std::fstream::out);
 	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
 	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
-	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << " ampl= " << ampl << std::endl;
 	for(int ii = 0; ii < nsteps; ii++) {
 		for(int jj = 0; jj < nx; jj++) outfile << m[ii][jj] << " ";
 		outfile << std::endl;
@@ -453,7 +462,7 @@ int main() {
 	outfile.open("HH_test_h.txt", std::fstream::out);
 	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
 	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
-	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << " ampl= " << ampl << std::endl;
 	for(int ii = 0; ii < nsteps; ii++) {
 		for(int jj = 0; jj < nx; jj++) outfile << h[ii][jj] << " ";
 		outfile << std::endl;
@@ -462,7 +471,7 @@ int main() {
 	outfile.open("HH_test_n.txt", std::fstream::out);
 	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
 	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
-	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << " ampl= " << ampl << std::endl;
 	for(int ii = 0; ii < nsteps; ii++) {
 		for(int jj = 0; jj < nx; jj++) outfile << n[ii][jj] << " ";
 		outfile << std::endl;
@@ -472,8 +481,8 @@ int main() {
 	outfile.open("HH_test_max.txt", std::fstream::out);
 	outfile << "# x0= " << x0 << " dx= " << dx << " nx= " << nx << std::endl;
 	outfile << "# t0= " << t0 << " dt= " << dt << " nt= " << nsteps << std::endl;
-	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << std::endl;
-	outfile << "# tmax\tVmax" << std::endl;
+	outfile << "# u0 gaussian mean= " << mu << " stdev= " << sigma << " ampl= " << ampl << std::endl;
+	outfile << "# xmax [cm]\ttmax[ms] \tVmax [mV]" << std::endl;
 	for(int jj = 0; jj < nx; jj++) {
 		double u1_diff, t_u1_max, u1_max = u1[0][jj];
 		for(int ii = 0; ii < nsteps-1; ii++) {
@@ -484,7 +493,7 @@ int main() {
 			}
 			u1_diff = u1_diff_tmp;
 		}
-		outfile << t_u1_max << "\t" << u1_max << std::endl;
+		outfile << x[jj] << "\t" << t_u1_max << "\t" << u1_max << std::endl;
 	}
 	outfile.close();
 }
