@@ -5,6 +5,7 @@
 
 #include "bound_cond_vecs.h"
 #include "derivators.h"
+#include "mystyle.h"
 
 #include <TGraph.h>
 #include <TMultiGraph.h>
@@ -17,19 +18,21 @@
 
 double mse(const bound_cond_vecs::BoundCondVec<double>& a, const bound_cond_vecs::BoundCondVec<double>& b) {
 	double result = 0.;
-	for(int ii = 0; ii < a.len(); ii++) result += (a[ii] - b[ii]) * (a[ii] - b[ii]) / a.len();
-	return result;
+	for(int ii = 0; ii < a.len(); ii++) result += (a[ii] - b[ii]) * (a[ii] - b[ii]);
+	return result / a.len();
 }
 
 int main() {
 	{
-		int N = 1000;
+		myStyle();
+		
+		int N = 100;
 		double dx = 1. / N;
 		bound_cond_vecs::BoundCondVec<double> tmpx(N), x(N), dx0(N);
 		for(int ii = 0; ii < N; ii++) {
-			tmpx[ii] = 2. * M_PI * ii * dx;
+			tmpx[ii] = 2. * M_PI * ii * dx * 2;
 			x[ii] = cos(tmpx[ii]) + sin(2. * tmpx[ii]) - sin(3. * tmpx[ii] + 0.1);
-			dx0[ii] = 2. * M_PI * (- sin(tmpx[ii]) + 2. * cos(2. * tmpx[ii]) - 3. * cos(3. * tmpx[ii] + 0.1));
+			dx0[ii] = 2. * M_PI * 2 * (- sin(tmpx[ii]) + 2. * cos(2. * tmpx[ii]) - 3. * cos(3. * tmpx[ii] + 0.1));
 		}
 		
 		bound_cond_vecs::BoundCondVec<double> dx1 = derivators::fwd_derive(x, dx);
@@ -56,26 +59,32 @@ int main() {
 		
 		TGraph* oggraph = new TGraph(N, tmpx.data(), x.data());
 		oggraph->SetMarkerColor(1);
+		oggraph->SetMarkerSize(0.2);
 		multigraph->Add(oggraph);
 		legend->AddEntry(oggraph, "origin", "p");
 		TGraph* thgraph = new TGraph(N, tmpx.data(), dx0.data());
 		thgraph->SetMarkerColor(2);
+		thgraph->SetMarkerSize(0.2);
 		multigraph->Add(thgraph);
 		legend->AddEntry(thgraph, "theory", "p");
 		graph[0] = new TGraph(N, tmpx.data(), dx1.data());
 		graph[0]->SetMarkerColor(1);
+		graph[0]->SetMarkerSize(0.2);
 		multigraph->Add(graph[0]);
 		legend->AddEntry(graph[0], "forward", "p");
 		graph[1] = new TGraph(N, tmpx.data(), dx2.data());
 		graph[1]->SetMarkerColor(2);
+		graph[1]->SetMarkerSize(0.2);
 		multigraph->Add(graph[1]);
 		legend->AddEntry(graph[1], "symmetric", "p");
 		graph[2] = new TGraph(N, tmpx.data(), dx3.data());
 		graph[2]->SetMarkerColor(3);
+		graph[2]->SetMarkerSize(0.2);
 		multigraph->Add(graph[2]);
 		legend->AddEntry(graph[2], "fft", "p");
 		graph[3] = new TGraph(N, tmpx.data(), dx4.data());
 		graph[3]->SetMarkerColor(4);
+		graph[3]->SetMarkerSize(0.2);
 		multigraph->Add(graph[3]);
 		legend->AddEntry(graph[3], "forward_i", "p");
 		
@@ -93,9 +102,9 @@ int main() {
 		for(int jj = 0; jj < ntries; jj++) {
 			bound_cond_vecs::BoundCondVec<double> tmpx(N), x(N), dx0(N);
 			for(int ii = 0; ii < N; ii++) {
-				tmpx[ii] = 2. * M_PI * ii * dx;
+				tmpx[ii] = 2. * M_PI * ii * dx * 100;
 				x[ii] = cos(tmpx[ii]) + sin(2. * tmpx[ii]) - sin(3. * tmpx[ii] + 0.1);
-				dx0[ii] = 2. * M_PI * (- sin(tmpx[ii]) + 2. * cos(2. * tmpx[ii]) - 3. * cos(3. * tmpx[ii] + 0.1));
+				dx0[ii] = 2. * M_PI * 100 * (- sin(tmpx[ii]) + 2. * cos(2. * tmpx[ii]) - 3. * cos(3. * tmpx[ii] + 0.1));
 			}
 			resx[jj] = dx;
 			bound_cond_vecs::BoundCondVec<double> dx1 = derivators::fwd_derive(x, dx);
@@ -116,38 +125,42 @@ int main() {
 		
 		graph[0] = new TGraph(ntries, resx, resy[0]);
 		graph[0]->SetMarkerColor(1);
+		graph[0]->SetLineColor(1);
 		multigraph->Add(graph[0]);
 		legend->AddEntry(graph[0], "forward", "p");
 		graph[1] = new TGraph(ntries, resx, resy[1]);
 		graph[1]->SetMarkerColor(2);
+		graph[1]->SetLineColor(2);
 		multigraph->Add(graph[1]);
 		legend->AddEntry(graph[1], "symmetric", "p");
 		graph[2] = new TGraph(ntries, resx, resy[2]);
 		graph[2]->SetMarkerColor(3);
+		graph[2]->SetLineColor(3);
 		multigraph->Add(graph[2]);
 		legend->AddEntry(graph[2], "fft", "p");
 		graph[3] = new TGraph(ntries, resx, resy[3]);
 		graph[3]->SetMarkerColor(4);
+		graph[3]->SetLineColor(4);
 		multigraph->Add(graph[3]);
 		legend->AddEntry(graph[3], "forward_i", "p");
 		
 		canvas->cd();
-		canvas->SetGrid();
+		//canvas->SetGrid();
 		canvas->SetLogx();
 		canvas->SetLogy();
-		multigraph->Draw("A*");
+		multigraph->Draw("APL");
 		legend->Draw();
 		canvas->SaveAs("derivator_scaling_dx.pdf");
 	}
 	
 	{
-		int N = 1000;
+		int N = 100;
 		double dx = 1. / N;
 		bound_cond_vecs::BoundCondVec<double> tmpx(N), x(N), dx0(N);
 		for(int ii = 0; ii < N; ii++) {
-			tmpx[ii] = 2. * M_PI * ii * dx;
+			tmpx[ii] = 2. * M_PI * ii * dx * 2;
 			x[ii] = cos(tmpx[ii]) + sin(2. * tmpx[ii]) - sin(3. * tmpx[ii] + 0.1);
-			dx0[ii] = 4. * M_PI * M_PI * (- cos(tmpx[ii]) - 4. * sin(2. * tmpx[ii]) + 9. * sin(3. * tmpx[ii] + 0.1));
+			dx0[ii] = 4. * M_PI * M_PI * 4 * (- cos(tmpx[ii]) - 4. * sin(2. * tmpx[ii]) + 9. * sin(3. * tmpx[ii] + 0.1));
 		}
 		
 		bound_cond_vecs::BoundCondVec<double> dx1 = derivators::fwd_derive_2(x, dx);
@@ -171,22 +184,27 @@ int main() {
 		
 		TGraph* oggraph = new TGraph(N, tmpx.data(), x.data());
 		oggraph->SetMarkerColor(4);
+		oggraph->SetMarkerSize(0.2);
 		multigraph->Add(oggraph);
 		legend->AddEntry(oggraph, "origin", "p");
 		TGraph* thgraph = new TGraph(N, tmpx.data(), dx0.data());
 		thgraph->SetMarkerColor(5);
+		thgraph->SetMarkerSize(0.2);
 		multigraph->Add(thgraph);
 		legend->AddEntry(thgraph, "theory", "p");
 		graph[0] = new TGraph(N, tmpx.data(), dx1.data());
 		graph[0]->SetMarkerColor(1);
+		graph[0]->SetMarkerSize(0.2);
 		multigraph->Add(graph[0]);
 		legend->AddEntry(graph[0], "forward", "p");
 		graph[1] = new TGraph(N, tmpx.data(), dx2.data());
 		graph[1]->SetMarkerColor(2);
+		graph[1]->SetMarkerSize(0.2);
 		multigraph->Add(graph[1]);
 		legend->AddEntry(graph[1], "symmetric", "p");
 		graph[2] = new TGraph(N, tmpx.data(), dx3.data());
 		graph[2]->SetMarkerColor(3);
+		graph[2]->SetMarkerSize(0.2);
 		multigraph->Add(graph[2]);
 		legend->AddEntry(graph[2], "fft", "p");
 		
@@ -204,9 +222,9 @@ int main() {
 		for(int jj = 0; jj < ntries; jj++) {
 			bound_cond_vecs::BoundCondVec<double> tmpx(N), x(N), dx0(N);
 			for(int ii = 0; ii < N; ii++) {
-				tmpx[ii] = 2. * M_PI * ii * dx;
+				tmpx[ii] = 2. * M_PI * ii * dx * 100;
 				x[ii] = cos(tmpx[ii]) + sin(2. * tmpx[ii]) - sin(3. * tmpx[ii] + 0.1);
-				dx0[ii] = 4. * M_PI * M_PI * (- cos(tmpx[ii]) - 4. * sin(2. * tmpx[ii]) + 9. * sin(3. * tmpx[ii] + 0.1));
+				dx0[ii] = 4. * M_PI * M_PI * 100 * 100 * (- cos(tmpx[ii]) - 4. * sin(2. * tmpx[ii]) + 9. * sin(3. * tmpx[ii] + 0.1));
 			}
 			resx[jj] = dx;
 			bound_cond_vecs::BoundCondVec<double> dx1 = derivators::fwd_derive_2(x, dx);
@@ -225,22 +243,25 @@ int main() {
 		
 		graph[0] = new TGraph(ntries, resx, resy[0]);
 		graph[0]->SetMarkerColor(1);
+		graph[0]->SetLineColor(1);
 		multigraph->Add(graph[0]);
 		legend->AddEntry(graph[0], "forward", "p");
 		graph[1] = new TGraph(ntries, resx, resy[1]);
 		graph[1]->SetMarkerColor(2);
+		graph[1]->SetLineColor(2);
 		multigraph->Add(graph[1]);
 		legend->AddEntry(graph[1], "symmetric", "p");
 		graph[2] = new TGraph(ntries, resx, resy[2]);
 		graph[2]->SetMarkerColor(3);
+		graph[2]->SetLineColor(3);
 		multigraph->Add(graph[2]);
 		legend->AddEntry(graph[2], "fft", "p");
 		
 		canvas->cd();
-		canvas->SetGrid();
+		// canvas->SetGrid();
 		canvas->SetLogx();
 		canvas->SetLogy();
-		multigraph->Draw("A*");
+		multigraph->Draw("APL");
 		legend->Draw();
 		canvas->SaveAs("derivator_scaling_dx_2.pdf");
 	}

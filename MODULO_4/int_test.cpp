@@ -9,6 +9,7 @@ namespace fs = std::filesystem;
 #include "derivators.h"
 #include "integrators.h"
 #include "wave_plots.h"
+#include "mystyle.h"
 
 constexpr double vv = 0.5;
 constexpr double ww = 0.001;
@@ -77,6 +78,8 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> g(std::vector<bound_cond_vecs
 }
 
 int main() {
+	myStyle();
+	
 	double t0 = 0., dt = 0.001;
 	int nsteps = 300, nx = 500;
 	double x0 = -0.5, dx = 1. / nx;

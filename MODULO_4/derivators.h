@@ -54,7 +54,7 @@ namespace derivators {
 		
 		DblBcv fwd_der_2_function(const DblBcv& input, const double dx) {
 			DblBcv output(input.len(), input.getMode());
-			for(int ii = 0; ii < input.len(); ii++) output[ii] = (- 1 * input[ii + 3] + 4 * input[ii + 2] - 5 * input[ii + 1] + 2 * input[ii]) / (dx * dx);
+			for(int ii = 0; ii < input.len(); ii++) output[ii] = (1 * input[ii + 2] - 2 * input[ii + 1] + 1 * input[ii]) / (dx * dx);
 			return output;
 		}
 		

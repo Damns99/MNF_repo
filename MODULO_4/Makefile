@@ -61,3 +61,11 @@ measure_HH:
 			./HH_max_plot_and_fit ; \
 		done ; \
 	done
+
+measure_HH_2:
+	for ss in 40 35 30 25 20 15 10 5 ; do \
+		for aa in -1500 -2000 -2500 -3000 -3500 -4000 -4500 -5000 ; do \
+			./int_HH -sigma $$ss -ampl $$aa ; \
+			./HH_max_plot_and_fit ; \
+		done ; \
+	done

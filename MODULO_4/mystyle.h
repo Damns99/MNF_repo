@@ -44,7 +44,7 @@ void myStyle() {
 	mystyle->SetTitleYOffset(1.4);
 	
 	mystyle->SetMarkerStyle(8);
-	mystyle->SetMarkerSize(0.25);
+	mystyle->SetMarkerSize(0.4);
 	mystyle->SetLineWidth(1);
 	
 	gROOT->SetStyle("mystyle");
