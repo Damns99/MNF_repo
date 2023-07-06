@@ -11,8 +11,8 @@ namespace fs = std::filesystem;
 #include "wave_plots.h"
 #include "mystyle.h"
 
-constexpr double vv = 0.5;
-constexpr double ww = 0.001;
+constexpr double vv = 15;
+constexpr double ww = 0.;
 constexpr double qq = 0.;
 
 // equation: du/dt = v * df(u)/dx + w * d2g(u)/dx2 + q
@@ -80,16 +80,17 @@ std::vector<bound_cond_vecs::BoundCondVec<double>> g(std::vector<bound_cond_vecs
 int main() {
 	myStyle();
 	
-	double t0 = 0., dt = 0.001;
-	int nsteps = 300, nx = 500;
-	double x0 = -0.5, dx = 1. / nx;
+	double t0 = 0., dt = 0.000001;
+	int nsteps = 500, nx = 100;
+	double x0 = -0.05, dx = 0.1 / nx;
 	bound_cond_vecs::BoundCondVec<double> x = integrators::linspace(x0, x0 + nx * dx, nx, PERIODIC_BC);
 	std::vector<bound_cond_vecs::BoundCondVec<double>> u0;
 	bound_cond_vecs::BoundCondVec<double> u0_tmp(nx, x.getMode());
+	double mu = 0., sigma = 0.01, A = 0.05;
 	for(int ii = 0; ii < nx; ii++) {
 		
-		// u0_tmp[ii] = sin(2. * M_PI * 1. * x[ii]); // cosine
-		u0_tmp[ii] = exp(- (x[ii]) * (x[ii]) / (2. * 0.01 * 0.01)); // gaussian
+		u0_tmp[ii] = 2*sin(2. * M_PI * 1. * x[ii]*10); // cosine
+		//u0_tmp[ii] = A * exp(- pow(x[ii]-mu,2) / (2. * pow(sigma,2))) / sigma / sqrt(2.*M_PI); // gaussian
 		
 	}
 	u0.push_back(u0_tmp);
@@ -107,14 +108,14 @@ int main() {
 	// double minu[2] = {0.}, maxu[2] = {1.};
 	// waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_SURF", SURF_PLOT, minu, maxu);
 	// waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_CONT", CONT_PLOT, minu, maxu);
-	// waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_COLZ", COLZ_PLOT, minu, maxu);
+	waveplots::plot(u1, t0, dt, nsteps, x0, dx, nx, "first_FTCS_test_COLZ", COLZ_PLOT, minu, maxu);
 	// waveplots::plot(u2, t0, dt, nsteps, x0, dx, nx, "first_Lax_test_SURF", SURF_PLOT, minu, maxu);
 	// waveplots::plot(u2, t0, dt, nsteps, x0, dx, nx, "first_Lax_test_CONT", CONT_PLOT, minu, maxu);
-	// waveplots::plot(u2, t0, dt, nsteps, x0, dx, nx, "first_Lax_test_COLZ", COLZ_PLOT, minu, maxu);
+	waveplots::plot(u2, t0, dt, nsteps, x0, dx, nx, "first_Lax_test_COLZ", COLZ_PLOT, minu, maxu);
 	// waveplots::plotFFT(u2, t0, dt, nsteps, "first_Lax_test_FFT_SURF", SURF_PLOT);
 	// waveplots::plot(u3, t0, dt, nsteps, x0, dx, nx, "first_LeapFrog_test_SURF", SURF_PLOT, minu, maxu);
 	// waveplots::plot(u3, t0, dt, nsteps, x0, dx, nx, "first_LeapFrog_CONT", CONT_PLOT, minu, maxu);
-	// waveplots::plot(u3, t0, dt, nsteps, x0, dx, nx, "first_LeapFrog_COLZ", COLZ_PLOT, minu, maxu);
+	waveplots::plot(u3, t0, dt, nsteps, x0, dx, nx, "first_LeapFrog_COLZ", COLZ_PLOT, minu, maxu);
 	// waveplots::plotFFT(u3, t0, dt, nsteps, "first_LeapFrog_test_FFT_SURF", SURF_PLOT);
 	waveplots::plot(u4, t0, dt, nsteps, x0, dx, nx, "first_LaxWendroff_test_SURF", SURF_PLOT, minu, maxu);
 	// waveplots::plot(u4, t0, dt, nsteps, x0, dx, nx, "first_LaxWendroff_test_CONT", CONT_PLOT, minu, maxu);

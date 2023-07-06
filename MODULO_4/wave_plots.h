@@ -42,6 +42,7 @@ namespace waveplots {
 			std::string filename = file + ss.str();
 			
 			auto canvas = new TCanvas("canvas", filename.c_str(), 600, 400);
+		canvas->SetRightMargin(0.15);
 			auto hist = new TH2D("hist", filename.c_str(), nt, t0 - 0.5*dt, t0 + (nt-0.5) * dt, nx, x0 - 0.5*dx, x0 + (nx-0.5) * dx);
 			for(int i = 0; i < nt; i++) for(int j = 0; j < nx; j++) hist->Fill(t0 + i * dt, x0 + j * dx, bound(u[i][k][j], mn[k], mx[k]));
 			
@@ -55,7 +56,7 @@ namespace waveplots {
 			else hist->Draw("COLZ0");
 			
 			canvas->SaveAs((filename + ".pdf").c_str());
-			canvas->SaveSource((filename + ".cpp").c_str());
+			//canvas->SaveSource((filename + ".cpp").c_str());
 			
 			delete canvas;
 			delete hist;
@@ -104,6 +105,7 @@ namespace waveplots {
 		std::string filename = file + ss.str();
 		
 		auto canvas = new TCanvas("canvas", filename.c_str(), 600, 400);
+		canvas->SetRightMargin(0.15);
 		auto hist = new TH2D("hist", filename.c_str(), nt, t0 - 0.5*dt, t0 + (nt-0.5) * dt, nx, x0 - 0.5*dx, x0 + (nx-0.5) * dx);
 		for(int i = 0; i < nt; i++) for(int j = 0; j < nx; j++) hist->Fill(t0 + i * dt, x0 + j * dx, bound(u[i][j], mn, mx));
 		

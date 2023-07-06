@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
 	if (parser.parseAll(argc, argv) == HELP_RETURN) return 0;
     parser.kickOff(argv[0]);
 	
-	double t0 = 0., dt = 0.01;
+	double t0 = 0., dt = 0.001;
 	int nsteps = 5000, nx = 301;
 	double x0 = -1.*100., dx = 2.*100. / (nx-1);
 	bound_cond_vecs::BoundCondVec<double> x = integrators::linspace(x0, x0 + (nx-1) * dx, nx, PERIODIC_BC);

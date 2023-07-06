@@ -41,12 +41,12 @@ int main() {
 	{
 	TCanvas* canvas = new TCanvas("canvas", "Canvas", 600, 400);
 	TMultiGraph* multigraph = new TMultiGraph();
-	TLegend* legend = new TLegend(0.75, 0.15, 0.90, 0.35);
+	TLegend* legend = new TLegend(0.15, 0.15, 0.30, 0.35);
 	for(int ii = 0; ii < stdev_unique.size(); ii++) {
 		std::vector<double> x, y, dy;
 		for(int jj = 0; jj < N; jj++) {
 			if(stdev[jj] == stdev_unique[ii]) {
-				x.push_back(ampl[jj]);
+				x.push_back(ampl[jj]/stdev[jj]);
 				y.push_back(m[jj]);
 				dy.push_back(dm[jj]);
 			}
@@ -60,7 +60,7 @@ int main() {
 		sprintf(leg_entry, "stdev = %.0f cm", stdev_unique[ii]);
 		legend->AddEntry(graph, leg_entry, "p");
 	}
-	multigraph->SetTitle(";ampl [mV];m [s/dam]");
+	multigraph->SetTitle(";ampl/stdev [mV/cm];m [s/dam]");
 	canvas->cd();
 	canvas->SetGrid();
 	// canvas->SetLogx();
@@ -112,7 +112,7 @@ int main() {
 		std::vector<double> x, y, dy;
 		for(int jj = 0; jj < N; jj++) {
 			if(stdev[jj] == stdev_unique[ii]) {
-				x.push_back(ampl[jj]);
+				x.push_back(ampl[jj]/stdev[jj]);
 				y.push_back(c[jj]);
 				dy.push_back(dc[jj]);
 			}
@@ -126,7 +126,7 @@ int main() {
 		sprintf(leg_entry, "stdev = %.0f cm", stdev_unique[ii]);
 		legend->AddEntry(graph, leg_entry, "p");
 	}
-	multigraph->SetTitle(";ampl [mV];c [ms]");
+	multigraph->SetTitle(";ampl/stdev [mV/cm];c [ms]");
 	canvas->cd();
 	canvas->SetGrid();
 	// canvas->SetLogx();
@@ -156,7 +156,7 @@ int main() {
 		graph->SetLineColor(ii+1);
 		multigraph->Add(graph);
 		char leg_entry[30];
-		sprintf(leg_entry, "ampl = %.0f cm", ampl_unique[ii]);
+		sprintf(leg_entry, "ampl = %.0f mV", ampl_unique[ii]);
 		legend->AddEntry(graph, leg_entry, "p");
 	}
 	multigraph->SetTitle(";stdev [mV];m [s/dam]");
@@ -189,7 +189,7 @@ int main() {
 		graph->SetLineColor(ii+1);
 		multigraph->Add(graph);
 		char leg_entry[30];
-		sprintf(leg_entry, "ampl = %.0f cm", ampl_unique[ii]);
+		sprintf(leg_entry, "ampl = %.0f mV", ampl_unique[ii]);
 		legend->AddEntry(graph, leg_entry, "p");
 	}
 	multigraph->SetTitle(";stdev [mV];q [ms]");
@@ -222,7 +222,7 @@ int main() {
 		graph->SetLineColor(ii+1);
 		multigraph->Add(graph);
 		char leg_entry[30];
-		sprintf(leg_entry, "ampl = %.0f cm", ampl_unique[ii]);
+		sprintf(leg_entry, "ampl = %.0f mV", ampl_unique[ii]);
 		legend->AddEntry(graph, leg_entry, "p");
 	}
 	multigraph->SetTitle(";stdev [mV];c [ms]");

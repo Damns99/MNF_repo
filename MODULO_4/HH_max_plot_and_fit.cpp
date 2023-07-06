@@ -82,7 +82,7 @@ int main() {
 	func2->SetParNames("par0", "c");
 	func2->SetNpx(100);
 	
-	func2->SetLineColor(kGreen);
+	func2->SetLineColor(kBlue);
 	func2->DrawCopy("LSAME");
 	
 	canvas->SaveAs("HH_test_max.pdf");	
