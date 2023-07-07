@@ -41,10 +41,10 @@ int main(int argc, char* argv[]) {
 	std::string filename;
 	
 	cmdlineParser::CmdlineParser parser;
-    parser.addOptParameter<double>("periodz", &periodz, 1., "input period [double]");
-    parser.addOptParameter<double>("offsetz", &offsetz, 0.5, "input offset [double]");
-    parser.addOptParameter<double>("ou_sigma", &ou_sigma, 0.5, "OU noise sigma [double]");
-    parser.addOptParameter<double>("ou_tau", &ou_tau, 0.1, "OU noise tau [double]");
+    parser.addPosParameter<double>("periodz", &periodz, 1., "input period [double]");
+    parser.addPosParameter<double>("offsetz", &offsetz, 0.5, "input offset [double]");
+    parser.addPosParameter<double>("ou_sigma", &ou_sigma, 0.5, "OU noise sigma [double]");
+    parser.addPosParameter<double>("ou_tau", &ou_tau, 0.1, "OU noise tau [double]");
     parser.addPosParameter<std::string>("filename", &filename, "stimulate_response_stim1_neur2.txt", "output file name [string]");
 	if(parser.parseAll(argc, argv) == HELP_RETURN) return 0;
     parser.kickOff(argv[0]);

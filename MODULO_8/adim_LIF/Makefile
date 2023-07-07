@@ -44,9 +44,12 @@ stimulate_response: stimulate_response.cpp libintegrate_LIF.so
 information_analysis: information_analysis.cpp libintegrate_LIF.so
 	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o information_analysis information_analysis.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math -lran2 -lbox_muller -Wno-deprecated
 
-compile: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot stimulate_response information_analysis
+test_currents: test_currents.cpp libintegrate_LIF.so
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o test_currents test_currents.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math -lran2 -lbox_muller -Wno-deprecated
 
-test: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot stimulate_response information_analysis
+compile: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot stimulate_response information_analysis test_currents
+
+test: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot stimulate_response information_analysis test_currents
 	./integrate_LIF3
 	./integrate_LIF4
 	./integrate_LIF5

@@ -33,7 +33,7 @@ void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<doubl
 
 int main() {
 	fs::current_path(fs::current_path() / "measures");
-	std::string filename11 = "stimulate_response_stim5_neur1.txt", filename21 = "stimulate_response_stim6_neur1.txt", filename12 = "stimulate_response_stim5_neur2.txt", filename22 = "stimulate_response_stim6_neur2.txt";
+	std::string filename11 = "stimulate_response_stim11_neur3.txt", filename21 = "stimulate_response_stim12_neur3.txt", filename12 = "stimulate_response_stim11_neur1.txt", filename22 = "stimulate_response_stim12_neur1.txt";
 	std::vector<double> s1r1, s2r1, s1r2, s2r2;
 	textIo::textIn(filename11, '\t', '#', &s1r1);
 	textIo::textIn(filename21, '\t', '#', &s2r1);
@@ -44,7 +44,7 @@ int main() {
 	s1r2.pop_back();
 	s2r2.pop_back();
 	int N = s1r1.size();
-	int nbins = 3;
+	int nbins = 4;
 	double P_Y[2] = {0.5, 0.5};
 	double P_X[nbins*nbins], P_XY[nbins*nbins][2];
 	double minr1, maxr1, minr2, maxr2;

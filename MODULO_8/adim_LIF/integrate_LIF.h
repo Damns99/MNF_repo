@@ -29,11 +29,13 @@ namespace int_lif {
 	// Heun method
 	// 
 	std::vector<double> Heun(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
+	std::vector<double> Heun_naive(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
 	double HeunLocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 
 	// RungeKutta4 method
 	// 
 	std::vector<double> RK4(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
+	std::vector<double> RK4_naive(double y0, double h, int N, std::vector<double>& I, double params[6], std::vector<double>* spiketimes = nullptr, double x0 = 0.);
 	double RK4LocError(std::vector<double>& V_ref, double h_ref, double h, int Npoints, std::vector<double>& I_ref, double params[6]);
 	
 	// Trapezioidal method direct integration

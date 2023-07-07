@@ -20,8 +20,10 @@ namespace fs = std::filesystem;
 #include "text_io.h"
 
 int main(int argc, char* argv[]) {
+	myStyle();
+	
 	std::string filenamelist[5];
-	double miny = 0.65, maxy = 1.15;
+	double miny = 0.86, maxy = 1.02;
 	
 	cmdlineParser::CmdlineParser parser;
     parser.addPosArrayParameter<std::string>("filenamelist", filenamelist, "", "output file name list with extensions [string[5]]", 5);
@@ -58,8 +60,8 @@ int main(int argc, char* argv[]) {
 			}
 			
 			TGraph* graph = new TGraph(x.size(), x.data(), y.data());
-			graph->SetMarkerColor(ff+2);
-			graph->SetLineColor(ff+2);
+			graph->SetMarkerColor(ff+1);
+			graph->SetLineColor(ff+1);
 			multigraph->Add((TGraph*) graph->Clone(), "");
 		}
 		
@@ -71,7 +73,7 @@ int main(int argc, char* argv[]) {
 	multigraph->SetTitle(";t [Cm/g];V [Vrest]");
 	multigraph->SetMaximum(maxy);
 	multigraph->SetMinimum(miny);
-	multigraph->Draw("AP");
+	multigraph->Draw("APL");
 	canvas->SaveAs("test_integration_comparison.pdf");
 	
 }

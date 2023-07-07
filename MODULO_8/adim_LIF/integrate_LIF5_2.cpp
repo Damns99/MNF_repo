@@ -39,6 +39,27 @@ void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<int>&
 	legend->AddEntry(graph, name, labeltype);
 }
 
+/* double exact_sol(double x, double offsetz, double periodz, double az) {
+	return 2. - ((1. - offsetz) * (1 - exp(-x)) + exp(-x) / (4*M_PI*M_PI/periodz/periodz + 1) * az * (-exp(x)*sin(2*M_PI/periodz*x) + exp(x)*2*M_PI/periodz*cos(2*M_PI/periodz*x) - 2*M_PI/periodz) + 1.*exp(-x)); 
+} */
+/* double exact_sol(double x, double startz, double durz, double az) {
+	if(x<startz) return 1.;
+	//else if(x<=startz+durz) return ((az+1)*exp(-(x-startz))*(exp((x-startz))+1) + 1.*exp(-(x-startz)));
+	else if(x<startz+durz) return 1. + az - az*exp(-(x-startz));
+	else return (exact_sol((startz+durz-1e-10),startz,durz,az)-1)*exp(-(x-startz-durz)) + 1;
+} */
+
+double func1(double x, double simtime, double az) {
+	if(x<simtime/4) return az*x;
+	else if(x<simtime*3/4) return az*(simtime/2-x);
+	else return az*(-simtime+x);
+}
+double exact_sol(double x, double simtime, double az) {
+	if(x<simtime/4) return (az-1)*exp(-x)+az*(x-1)+1+1*exp(-x);
+	else if(x<simtime*3/4) return exact_sol(simtime/4-1e-10,simtime,az)*exp(simtime/4-x) - (az*simtime/4+az+1)*exp(simtime/4-x) + az*(2*simtime/4-x+1) +1;
+	else return exact_sol(simtime*3/4-1e-10,simtime,az)*exp(simtime*3/4-x) + (az*simtime/4+az-1)*exp(simtime*3/4-x) + az*(-simtime+x-1) +1;
+}
+
 int main() {
 	// Voltages in [Vrest = -70e-3 V], Currents in [g*Vrest = -7e-10 A], Times in [Cm/g = 1e-2 s]
 	double params[2] = {
@@ -46,17 +67,18 @@ int main() {
 		1.,  // yreset
 	};
 	double simtime = 1e1;
-	double az = -1.;
-	// double startz = 5, durz = 50, intz = 20;
-	// int numz = 25;
-	// std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
-	// double periodz = 40, phasez = 3.923, offsetz = -0.20;
+	// Currents
+	double az = -0.1;
+	// pulse_train
+	double startz = 20, durz = 50, intz = 200;
+	int numz = 25;
+	// sine_wave
 	double periodz = 1., phasez = 0., offsetz = -0.5;
 	double x0 = 0.;
 	double y0 = 1.;
 	
 	int nNvec = 400;
-	double Nvec0 = 3., Nvec1 = 5.;
+	double Nvec0 = 2., Nvec1 = 7.;
 	std::vector<int> Nvec; // occhio che sono double ma sono interi
 	for(int i = 0; i < nNvec; i++) {
 		int newN = floor(pow(10, Nvec0+((Nvec1-Nvec0)*i)/nNvec));
@@ -70,7 +92,7 @@ int main() {
 	std::vector<double> finerrvec1, finerrvec2, finerrvec3, finerrvec4;
 	std::vector<double> vcfvec1, vcfvec2, vcfvec3, vcfvec4;
 	std::vector<double> scfvec1, scfvec2, scfvec3, scfvec4;
-	double vcfdelta = 0.2, scfdelta = 0.2;
+	double vcfdelta = 0.05, scfdelta = 0.05;
 	
 	// Benchmark
 	int N_bench = 1e8;
@@ -85,8 +107,13 @@ int main() {
 	for(int N : Nvec) {
 		int_lif::utils::printPercent(ii1++, percent1, Nvec.size(), "");
 		double h = simtime/(N-1);
-		std::vector<double> z = int_lif::currents::sine_wave(N, h, periodz, az, phasez, offsetz);
-		std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, h/2, periodz, az, phasez, offsetz);
+		//std::vector<double> z = int_lif::currents::sine_wave(N, h, periodz, az, phasez, offsetz);
+		//std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N-1, h/2, periodz, az, phasez, offsetz);
+	//std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
+	//std::vector<double> zRK4 = int_lif::currents::pulse_train(2*N-1, int(startz/(h/2)), int(durz/(h/2)), az, int(intz/(h/2)), numz);
+	std::vector<double> z, zRK4;
+	for(int i = 0; i < N; i++) z.push_back(func1(h*i,simtime,az));
+	for(int i = 0; i < 2*N-1; i++) zRK4.push_back(func1(h/2*i,simtime,az));
 		std::vector<double> y1, y2, y3, y4;
 		std::vector<double> spkt1, spkt2, spkt3, spkt4;
 		y1 = int_lif::fwdEuler(y0, h, N, z, params, &spkt1);
@@ -94,7 +121,11 @@ int main() {
 		y3 = int_lif::Heun(y0, h, N, z, params, &spkt3);
 		y4 = int_lif::RK4(y0, h, N, zRK4, params, &spkt4);
 		std::vector<double> y_bench(N);
-		for(int i = 0; i < N; i++) y_bench[i] = y_bench_tmp[int((N_bench-1.)/(N-1.)*i)];
+		std::vector<double> x = int_lif::utils::linspace(x0, x0 + simtime, N);
+		// for(int i = 0; i < N; i++) y_bench[i] = y_bench_tmp[int((N_bench-1.)/(N-1.)*i)];
+		// for(int i = 0; i < N; i++) y_bench[i] = exact_sol(x[i], offsetz, periodz, az);
+		// for(int i = 0; i < N; i++) y_bench[i] = exact_sol(x[i], startz, durz, az);
+		for(int i = 0; i < N; i++) y_bench[i] = exact_sol(x[i], simtime,az);
 		/* for(int i = 0; i < N; i++) {
 			if(i*h < startz) y_bench[i] = y0;
 			else if(i*h < startz+durz) y_bench[i] = y0+az*(1-exp(-(i*h-startz)));
@@ -141,11 +172,11 @@ int main() {
 	multigraph1->SetTitle("MSE comparison;h [];mse [V^2]");
 	legend1->Draw();
 	canvas1->SaveAs("mse_comparison_2.pdf");
-	multigraph1->GetXaxis()->SetLimits(0.5e-5, 2e0);
+	multigraph1->GetXaxis()->SetLimits(0.5e-6, 2e-1);
 	canvas1->SetLogx();
 	canvas1->SaveAs("mse_comparison_lx_2.pdf");
 	multigraph1->SetMaximum(pow(10, ceil(log10(multigraph1->GetHistogram()->GetMaximum()))));
-	multigraph1->SetMinimum(pow(10, -12));
+	multigraph1->SetMinimum(pow(10, -28));
 	canvas1->SetLogy();
 	canvas1->SaveAs("mse_comparison_lxly_2.pdf");
 	
@@ -164,11 +195,11 @@ int main() {
 	multigraph2->SetTitle("MAE comparison;h [];mae [V]");
 	legend2->Draw();
 	canvas2->SaveAs("mae_comparison_2.pdf");
-	multigraph2->GetXaxis()->SetLimits(0.5e-5, 2e0);
+	multigraph2->GetXaxis()->SetLimits(0.5e-6, 2e-1);
 	canvas2->SetLogx();
 	canvas2->SaveAs("mae_comparison_lx_2.pdf");
 	multigraph2->SetMaximum(pow(10, ceil(log10(multigraph2->GetHistogram()->GetMaximum()))));
-	multigraph2->SetMinimum(pow(10, -6));
+	multigraph2->SetMinimum(pow(10, -15));
 	canvas2->SetLogy();
 	canvas2->SaveAs("mae_comparison_lxly_2.pdf");
 	
@@ -248,7 +279,7 @@ int main() {
 	multigraph5->GetXaxis()->SetLimits(0.5e-5, 2e0);
 	canvas5->SetLogx();
 	canvas5->SaveAs("vcf_comparison_lx_2.pdf");
-	multigraph5->SetMinimum(pow(10, -16));
+	multigraph5->SetMinimum(pow(10, -5));
 	canvas5->SetLogy();
 	canvas5->SaveAs("vcf_comparison_lxly_2.pdf");
 	
@@ -265,6 +296,9 @@ int main() {
 	canvas6->SetGrid();
 	multigraph6->Draw("AP");
 	multigraph6->SetTitle("SCF comparison;h [];scf []");
+	multigraph6->SetMinimum(-1);
+	multigraph6->SetMaximum(1);
+	canvas6->SetLogx();
 	legend6->Draw();
 	canvas6->SaveAs("scf_comparison_2.pdf");
 	

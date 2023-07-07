@@ -188,15 +188,63 @@ int main() {
 	}
 	std::cout << std::endl;
 	
+	// Heun naive
+	std::vector<double> timevec5, dtimevec5;
+	int percent5 = 0, ii5 = -1;
+	for(double h : hvec) {
+		int_lif::utils::printPercent(ii5++, percent5, hvec.size(), "Heun naive: ");
+		int N = int(simtime/h);
+		std::vector<double> z = int_lif::currents::sine_wave(N, int(periodz/h), az, int(phasez/h), offsetz);
+		std::vector<double> time(nrep);
+		for(int jj = 0; jj < nrep; jj++) {
+			std::vector<double> y, x;
+			std::chrono::time_point<std::chrono::steady_clock> start, end;
+			start = std::chrono::steady_clock::now();
+			y = int_lif::Heun_naive(y0, h, N, z, params);
+			x = int_lif::utils::linspace(x0, x0 + N*h, N);
+			end = std::chrono::steady_clock::now();
+			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
+		}
+		timevec5.push_back(int_lif::utils::mean(time));
+		dtimevec5.push_back(int_lif::utils::stdev(time)/sqrt(nrep));
+	}
+	std::cout << std::endl;
+	
+	// RK4 naive
+	std::vector<double> timevec6, dtimevec6;
+	int percent6 = 0, ii6 = -1;
+	for(double h : hvec) {
+		int_lif::utils::printPercent(ii6++, percent6, hvec.size(), "RK4_naive: ");
+		int N = int(simtime/h);
+		std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, 2*int(periodz/h), az, 2*int(phasez/h), offsetz);
+		std::vector<double> time(nrep);
+		for(int jj = 0; jj < nrep; jj++) {
+			std::vector<double> y, x;
+			std::chrono::time_point<std::chrono::steady_clock> start, end;
+			start = std::chrono::steady_clock::now();
+			y = int_lif::RK4_naive(y0, h, N, zRK4, params);
+			x = int_lif::utils::linspace(x0, x0 + N*h, N);
+			end = std::chrono::steady_clock::now();
+			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
+		}
+		timevec6.push_back(int_lif::utils::mean(time));
+		dtimevec6.push_back(int_lif::utils::stdev(time)/sqrt(nrep));
+	}
+	std::cout << std::endl;
+	
 	auto graph1 = addToMultigraph(multigraph, legend, hvec, timevec1, dtimevec1, hvec.size(), 1, "fwdEuler", "p", "");
 	auto graph2 = addToMultigraph(multigraph, legend, hvec, timevec2, dtimevec2, hvec.size(), 2, "bwdEuler", "p", "");
 	auto graph3 = addToMultigraph(multigraph, legend, hvec, timevec3, dtimevec3, hvec.size(), 3, "Heun", "p", "");
 	auto graph4 = addToMultigraph(multigraph, legend, hvec, timevec4, dtimevec4, hvec.size(), 4, "RK4", "p", "");
+	auto graph5 = addToMultigraph(multigraph, legend, hvec, timevec5, dtimevec5, hvec.size(), 5, "Heun_naive", "p", "");
+	auto graph6 = addToMultigraph(multigraph, legend, hvec, timevec6, dtimevec6, hvec.size(), 6, "RK4_naive", "p", "");
 	
-	auto f1 = fitOneOverH("f1", 1e-5, 1e0, graph1, 1);
-	auto f2 = fitOneOverH("f2", 1e-5, 1e0, graph2, 2);
-	auto f3 = fitOneOverH("f3", 1e-5, 1e0, graph3, 3);
-	auto f4 = fitOneOverH("f4", 1e-5, 1e0, graph4, 4);
+	auto f1 = fitOneOverH("f1", 1e-4, 1e0, graph1, 1);
+	auto f2 = fitOneOverH("f2", 1e-4, 1e0, graph2, 2);
+	auto f3 = fitOneOverH("f3", 1e-4, 1e0, graph3, 3);
+	auto f4 = fitOneOverH("f4", 1e-4, 1e0, graph4, 4);
+	auto f5 = fitOneOverH("f5", 1e-4, 1e0, graph5, 5);
+	auto f6 = fitOneOverH("f6", 1e-4, 1e0, graph6, 6);
 	
 	canvas->cd();
 	canvas->SetGrid();
@@ -214,11 +262,13 @@ int main() {
 	f2->Draw("SAME");
 	f3->Draw("SAME");
 	f4->Draw("SAME");
+	f5->Draw("SAME");
+	f6->Draw("SAME");
 	legend->Draw();
 	canvas->SetLogy();
 	canvas->SaveAs("timings_comparison_lxly.pdf");
 	
-	TCanvas* canvas2 = new TCanvas("canvas2", "Canvas2", 600, 400);
+	/* TCanvas* canvas2 = new TCanvas("canvas2", "Canvas2", 600, 400);
 	TMultiGraph* multigraph2 = new TMultiGraph();
 	TLegend* legend2 = new TLegend(0.75, 0.75, 0.85, 0.85);
 	
@@ -265,5 +315,5 @@ int main() {
 	
 	fs::current_path(fs::current_path() / "measures");
 	textIo::textOut("LIF4_timings.txt", '\t', '#', "h\tfwdEuler\terr\tbwdEuler\terr\tHeun\terr\tRK4\terr", hvec.size(), false, hvec, timevec1, dtimevec1, timevec2, dtimevec2, timevec3, dtimevec3, timevec4, dtimevec4);
-	textIo::textOut("LIF4_difftimes.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, diff1, diff2, diff3, diff4);
+	textIo::textOut("LIF4_difftimes.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, diff1, diff2, diff3, diff4); */
 }

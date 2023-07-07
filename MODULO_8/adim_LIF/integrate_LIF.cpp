@@ -92,6 +92,23 @@ std::vector<double> int_lif::Heun(double y0, double h, int N, std::vector<double
 	}
 	return y;
 }
+std::vector<double> int_lif::Heun_naive(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes, double x0) {
+	double yth = params[0], yreset = params[1];
+	std::vector<double> y(N);
+	y[0] = y0;
+	double newy = y0;
+	for(int n = 1; n < N; n++) {
+		double k1 = newy + h * (-newy + z[n-1] + 1);
+		newy = newy + (h/2) * ((-newy + z[n-1] + 1) + (-k1 + z[n] + 1));
+		if(newy <= yth) {
+			y[n] = yreset;
+			newy = yreset;
+			if(spiketimes != nullptr) spiketimes->push_back(x0+n*h);
+		}
+		else y[n] = newy;
+	}
+	return y;
+}
 
 double int_lif::HeunLocError(std::vector<double>& y_ref, double h_ref, double h, int Npoints, std::vector<double>& z_ref, double params[2]) {
 	double yth = params[0], yreset = params[1];
@@ -117,7 +134,27 @@ std::vector<double> int_lif::RK4(double y0, double h, int N, std::vector<double>
 	y[0] = y0;
 	double newy = y0;
 	for(int n = 1; n < N; n++) {
-		newy = (1-a1) * newy + (a1-a2) * z[2*n-2] + (a2-h/6) * z[2*n-1] + (h/6) * z[2*n] + a1;
+		newy = (1-a1) * newy + (a1-a2-h/6) * z[2*n-2] + (a2) * z[2*n-1] + (h/6) * z[2*n] + a1;
+		if(newy <= yth) {
+			y[n] = yreset;
+			newy = yreset;
+			if(spiketimes != nullptr) spiketimes->push_back(x0+n*h);
+		}
+		else y[n] = newy;
+	}
+	return y;
+}
+std::vector<double> int_lif::RK4_naive(double y0, double h, int N, std::vector<double>& z, double params[2], std::vector<double>* spiketimes, double x0) {
+	double yth = params[0], yreset = params[1];
+	std::vector<double> y(N);
+	y[0] = y0;
+	double newy = y0;
+	for(int n = 1; n < N; n++) {
+		double k1 = -newy + z[2*n-2] + 1;
+		double k2 = -(newy+k1*h/2) + z[2*n-1] + 1;
+		double k3 = -(newy+k2*h/2) + z[2*n-1] + 1;
+		double k4 = -(newy+k3*h) + z[2*n] + 1;
+		newy = newy + (h/6) * (k1 + 2*k2 + 2*k3 + k4);
 		if(newy <= yth) {
 			y[n] = yreset;
 			newy = yreset;

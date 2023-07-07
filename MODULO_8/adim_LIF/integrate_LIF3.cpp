@@ -27,6 +27,27 @@ void addToMultigraph(TMultiGraph* multigraph, TLegend* legend, std::vector<doubl
 	legend->AddEntry(graph, name, labeltype);
 }
 
+/* double exact_sol(double x, double offsetz, double periodz, double az) {
+	return 2. - ((1. - offsetz) * (1 - exp(-x)) + exp(-x) / (4*M_PI*M_PI/periodz/periodz + 1) * az * (-exp(x)*sin(2*M_PI/periodz*x) + exp(x)*2*M_PI/periodz*cos(2*M_PI/periodz*x) - 2*M_PI/periodz) + 1.*exp(-x)); 
+} */
+/* double exact_sol(double x, double startz, double durz, double az) {
+	if(x<startz) return 1.;
+	//else if(x<=startz+durz) return ((az+1)*exp(-(x-startz))*(exp((x-startz))+1) + 1.*exp(-(x-startz)));
+	else if(x<startz+durz) return 1. + az - az*exp(-(x-startz));
+	else return (exact_sol((startz+durz-1e-10),startz,durz,az)-1)*exp(-(x-startz-durz)) + 1;
+} */
+
+double func1(double x, double simtime, double az) {
+	if(x<simtime/4) return az*x;
+	else if(x<simtime*3/4) return az*(simtime/2-x);
+	else return az*(-simtime+x);
+}
+double exact_sol(double x, double simtime, double az) {
+	if(x<simtime/4) return (az-1)*exp(-x)+az*(x-1)+1+1*exp(-x);
+	else if(x<simtime*3/4) return exact_sol(simtime/4-1e-10,simtime,az)*exp(simtime/4-x) - (az*simtime/4+az+1)*exp(simtime/4-x) + az*(2*simtime/4-x+1) +1;
+	else return exact_sol(simtime*3/4-1e-10,simtime,az)*exp(simtime*3/4-x) + (az*simtime/4+az-1)*exp(simtime*3/4-x) + az*(-simtime+x-1) +1;
+}
+
 int main() {
 	// Voltages in [Vrest = -70e-3 V], Currents in [g*Vrest = -7e-10 A], Times in [Cm/g = 1e-2 s]
 	double params[2] = {
@@ -34,22 +55,26 @@ int main() {
 		1.,  // yreset
 	};
 	double simtime = 1.e1;
-	int N = 1000;
+	int N = 100;
 	double h = simtime/(N-1);
 	double x0 = 0.;
 	double y0 = 1.;
 	int nrep = 100;
 	
 	// Currents
-	double az = -1.;
+	double az = -0.1;
 	// pulse_train
-	// double startz = 5, durz = 50, intz = 20;
-	// int numz = 25;
-	// std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
+	double startz = 2, durz = 5, intz = 20;
+	int numz = 25;
+	/*std::vector<double> z = int_lif::currents::pulse_train(N, int(startz/h), int(durz/h), az, int(intz/h), numz);
+	std::vector<double> zRK4 = int_lif::currents::pulse_train(2*N-1, int(startz/(h/2)), int(durz/(h/2)), az, int(intz/(h/2)), numz); */
+	std::vector<double> z, zRK4;
+	for(int i = 0; i < N; i++) z.push_back(func1(h*i,simtime,az));
+	for(int i = 0; i < 2*N-1; i++) zRK4.push_back(func1(h/2*i,simtime,az));
 	// sine_wave
 	double periodz = 1., phasez = 0., offsetz = -0.5;
-	std::vector<double> z = int_lif::currents::sine_wave(N, h, periodz, az, phasez, offsetz);
-	std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N, h/2, periodz, az, phasez, offsetz);
+	/*std::vector<double> z = int_lif::currents::sine_wave(N, h, periodz, az, phasez, offsetz);
+	std::vector<double> zRK4 = int_lif::currents::sine_wave(2*N-1, h/2, periodz, az, phasez, offsetz); */
 	/* double meanz = -0.10, variancez = 0.0001;
 	std::vector<double> z = int_lif::currents::white_noise(N, meanz, variancez);
 	std::vector<double> zRK4 = int_lif::currents::white_noise(2*N, meanz, variancez); */
@@ -68,6 +93,9 @@ int main() {
 	std::cout << "spike times [Cm/g]";
 	for(auto& sp: spkt_bench) std::cout << " " << sp;
 	std::cout << std::endl << std::endl;
+	for(int ii = 0; ii < N_bench; ii++) {
+		y_bench_tmp[ii] = exact_sol(x_bench_tmp[ii], simtime,az);
+	};
 	
 	std::vector<double> y_bench(N);
 	for(int i = 0; i < N; i++) y_bench[i] = y_bench_tmp[int((N_bench-1.)/(N-1.)*i)];
