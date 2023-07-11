@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 		K_multigraph->Add(K_graphs[i]);
 	}
 	
-	K_multigraph->SetTitle(";;");
+	K_multigraph->SetTitle(";(#beta-#beta_c)L^{1/#nu};#frac{#chi}{L^{#gamma/#nu}}");
 	K_multigraph->Draw("AP");
-	K_canvas->SaveAs((outname + ".pdf").c_str());
+	K_canvas->SaveAs((outname + "_updated.pdf").c_str());
 }
