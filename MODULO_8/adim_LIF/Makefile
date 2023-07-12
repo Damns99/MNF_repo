@@ -47,12 +47,26 @@ information_analysis: information_analysis.cpp libintegrate_LIF.so
 test_currents: test_currents.cpp libintegrate_LIF.so
 	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o test_currents test_currents.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math -lran2 -lbox_muller -Wno-deprecated
 
-compile: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot stimulate_response information_analysis test_currents
+plot_hist_timings: plot_hist_timings.cpp libintegrate_LIF.so
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o plot_hist_timings plot_hist_timings.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math -lran2 -lbox_muller -Wno-deprecated
 
-test: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot stimulate_response information_analysis test_currents
+integrate_LIF3_ada: integrate_LIF3_ada.cpp libintegrate_LIF.so
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o integrate_LIF3_ada integrate_LIF3_ada.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math -lran2 -lbox_muller -Wno-deprecated
+
+analyze_timings: analyze_timings.cpp libintegrate_LIF.so
+	g++ -std=c++2a -L $(LIBPATH) -Wl,-rpath=$(LIBPATH) -L . -Wl,-rpath=. -I $(INCLUDEPATH) -o analyze_timings analyze_timings.cpp -lm -O4 $(ROOT_CONFIG) -lintegrate_LIF -ffast-math -lran2 -lbox_muller -Wno-deprecated
+
+compile: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot stimulate_response information_analysis test_currents plot_hist_timings integrate_LIF3_ada analyze_timings
+
+test: integrate_LIF3 integrate_LIF4 integrate_LIF5 integrate_LIF5_2 take_measure then_plot stimulate_response information_analysis test_currents plot_hist_timings integrate_LIF3_ada analyze_timings
 	./integrate_LIF3
 	./integrate_LIF4
 	./integrate_LIF5
 	./integrate_LIF5_2
+
+do_hists:
+	for f in `ls measures/5_timings/*.txt | xargs -n 1 basename`; do \
+		./plot_hist_timings $$f 10; \
+	done;
 
 clean: 
