@@ -98,7 +98,7 @@ int main() {
 	TMultiGraph* multigraph = new TMultiGraph();
 	TLegend* legend = new TLegend(0.75, 0.75, 0.85, 0.85);
 	
-	std::vector<double> hvec = int_lif::utils::logspace(-4, 0, 400);
+	std::vector<double> hvec = int_lif::utils::logspace(-4, 0, 40);
 	
 	// fwdEuler
 	std::vector<double> timevec1, dtimevec1;
@@ -113,7 +113,7 @@ int main() {
 			std::vector<double> y, x;
 			std::chrono::time_point<std::chrono::steady_clock> start, end;
 			start = std::chrono::steady_clock::now();
-			y = int_lif::fwdEuler(y0, h, N, z, params);
+			y = int_lif::bwdEuler(y0, h, N, z, params);
 			end = std::chrono::steady_clock::now();
 			time[jj] = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count() / 1.e9; // [s]
 			x = int_lif::utils::linspace(x0, x0 + N*h, N);
@@ -263,10 +263,10 @@ int main() {
 	multigraph->Draw("AP");
 	multigraph->SetTitle("timings comparison;h [s];time [s]");
 	legend->Draw();
-	canvas->SaveAs("5_timings_comparison.pdf");
+	canvas->SaveAs("6_timings_comparison.pdf");
 	multigraph->GetXaxis()->SetLimits(0.5e-4, 2e0);
 	canvas->SetLogx();
-	canvas->SaveAs("5_timings_comparison_lx.pdf");
+	canvas->SaveAs("6_timings_comparison_lx.pdf");
 	multigraph->SetMaximum(pow(10, ceil(log10(multigraph->GetHistogram()->GetMaximum()))));
 	multigraph->SetMinimum(pow(10, -7));
 	multigraph->Draw("APX"); // no error bars in logy
@@ -278,7 +278,7 @@ int main() {
 	f6->Draw("SAME");
 	legend->Draw();
 	canvas->SetLogy();
-	canvas->SaveAs("5_timings_comparison_lxly.pdf");
+	canvas->SaveAs("6_timings_comparison_lxly.pdf");
 	
 	TCanvas* canvas3 = new TCanvas("canvas3", "Canvas3", 600, 400);
 	TMultiGraph* multigraph3 = new TMultiGraph();
@@ -330,7 +330,7 @@ int main() {
 	multigraph3->SetMinimum(pow(10, -10));
 	canvas3->SetLogx();
 	canvas3->SetLogy();
-	canvas3->SaveAs("5_timings_stdev_comparison.pdf");
+	canvas3->SaveAs("6_timings_stdev_comparison.pdf");
 	
 	TCanvas* canvas2 = new TCanvas("canvas2", "Canvas2", 600, 400);
 	TMultiGraph* multigraph2 = new TMultiGraph();
@@ -389,7 +389,7 @@ int main() {
 	legend2->Draw();
 	multigraph2->GetXaxis()->SetLimits(0.5e-4, 2e0);
 	canvas2->SetLogx();
-	canvas2->SaveAs("5_timings_diff_fit_comparison.pdf");
+	canvas2->SaveAs("6_timings_diff_fit_comparison.pdf");
 	
 	
 	TCanvas* canvas4 = new TCanvas("canvas4", "Canvas4", 600, 400);
@@ -452,15 +452,15 @@ int main() {
 	multigraph4->SetMinimum(pow(10, -17));
 	canvas4->SetLogx();
 	canvas4->SetLogy();
-	canvas4->SaveAs("5_timings_mse_fit_comparison.pdf");
+	canvas4->SaveAs("6_timings_mse_fit_comparison.pdf");
 	
 	
 	fs::current_path(fs::current_path() / "measures");
-	textIo::textOut("5_LIF4_timings.txt", '\t', '#', "h\tfwdEuler\terr\tbwdEuler\terr\tHeun\terr\tRK4\terr\tHeun_naive\terr\tRK4_naive\terr", hvec.size(), false, hvec, timevec1, dtimevec1, timevec2, dtimevec2, timevec3, dtimevec3, timevec4, dtimevec4, timevec5, dtimevec5, timevec6, dtimevec6);
+	textIo::textOut("6_LIF4_timings.txt", '\t', '#', "h\tfwdEuler\terr\tbwdEuler\terr\tHeun\terr\tRK4\terr\tHeun_naive\terr\tRK4_naive\terr", hvec.size(), false, hvec, timevec1, dtimevec1, timevec2, dtimevec2, timevec3, dtimevec3, timevec4, dtimevec4, timevec5, dtimevec5, timevec6, dtimevec6);
 	// textIo::textOut("LIF4_difftimes.txt", '\t', '#', "h\tfwdEuler\tbwdEuler\tHeun\tRK4", hvec.size(), false, hvec, diff1, diff2, diff3, diff4);
 	
 	
-	fs::current_path(fs::current_path() / "5_timings");
+	fs::current_path(fs::current_path() / "6_timings");
 	for(int i = 0; i < hvec.size(); i++) {
 		textIo::textOut("LIF4_all_timings_fwdEuler_h_"+std::to_string(hvec[i])+".txt", '\t', '#', "time [s]", nrep, false, alltimevec1[i]);
 		textIo::textOut("LIF4_all_timings_bwdEuler_h_"+std::to_string(hvec[i])+".txt", '\t', '#', "time [s]", nrep, false, alltimevec2[i]);
