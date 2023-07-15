@@ -1,0 +1,5 @@
+#N: 3905    h: 0.002561    method: intSimpson    current: sine_wave period: 1.000000 amplitude: -1.000000 phase: 0.000000 offset: -0.500000
+#spkt
+0.256147540983607
+2.69979508196721
+6.43954918032787

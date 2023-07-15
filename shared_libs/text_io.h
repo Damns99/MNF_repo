@@ -7,6 +7,7 @@
 #include <cstdarg>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 
 namespace textIo {
 	
@@ -89,11 +90,13 @@ namespace textIo {
 		}
 		
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<double>& orig) {
+			outfile << std::setprecision(std::numeric_limits<double>::digits10);
 			outfile << orig[ind] << '\n';
 			return 0;
 		}
 		template <typename ... Args>
 		int textOutSlave(std::ofstream & outfile, char delim, unsigned int ind, std::vector<double>& orig, Args ... args) {
+			outfile << std::setprecision(std::numeric_limits<double>::digits10);
 			outfile << orig[ind] << ' '  << delim;
 			return textOutSlave(outfile, delim, ind, args ...);
 		}
@@ -129,7 +132,7 @@ namespace textIo {
 		if (append) outfile.open(filename, std::fstream::out | std::fstream::app);
 		else outfile.open(filename, std::fstream::out);
 		
-		outfile << ignore << header << '\n';
+		if(header != "") outfile << ignore << header << '\n';
 		
 		for(unsigned int ind = 0; ind < N; ind++) details::textOutSlave(outfile, delim, ind, args ...);
 		

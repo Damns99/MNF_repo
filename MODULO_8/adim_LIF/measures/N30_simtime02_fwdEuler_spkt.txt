@@ -1,0 +1,3 @@
+#N: 30    h: 0.006897    method: fwdEuler    current: sine_wave period: 1.000000 amplitude: -1.000000 phase: 0.000000 offset: -0.100000
+#spkt
+0.00689655172413793

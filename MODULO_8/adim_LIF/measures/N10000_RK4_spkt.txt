@@ -1,0 +1,1 @@
+#N: 1953    h: 0.005123    method: RK4    current: sine_wave period: 1.000000 amplitude: -1.000000 phase: 0.000000 offset: -0.500000
