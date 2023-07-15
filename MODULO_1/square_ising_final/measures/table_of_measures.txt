@@ -1,0 +1,28 @@
+\multicolumn{2}{c|}{0.3} & x & x & x & x & x \\
+\multicolumn{2}{c|}{0.35} & x & x & x & x & x \\
+\multicolumn{2}{c|}{0.36} & x & x & x & x & x \\
+\multicolumn{2}{c|}{0.37} & \checkmark & x & x & x & x \\
+\multicolumn{2}{c|}{0.38} & \checkmark & x & x & x & x \\
+\multicolumn{2}{c|}{0.39} & \checkmark & x & x & x & x \\
+\multicolumn{2}{c|}{0.4} & \checkmark & \checkmark & x & x & x \\
+\multicolumn{2}{c|}{0.405} & \checkmark & \checkmark & x & x & x \\
+\multicolumn{2}{c|}{0.41} & \checkmark & \checkmark & x & x & x \\
+\multicolumn{2}{c|}{0.415} & \checkmark & \checkmark & x & x & x \\
+\multicolumn{2}{c|}{0.4175} & & & x & x & x \\
+\multicolumn{2}{c|}{0.42} & \checkmark & \checkmark & \checkmark & x & x \\
+\multicolumn{2}{c|}{0.4225} & & & \checkmark & x & x \\
+\multicolumn{2}{c|}{0.425} & x & \checkmark & \checkmark & x & x \\
+\multicolumn{2}{c|}{0.4275} & & & \checkmark & x & x \\
+\multicolumn{2}{c|}{0.43} & x & \checkmark & \checkmark & \checkmark & x \\
+\multicolumn{2}{c|}{0.4325} & & & \checkmark & \checkmark & \checkmark \\
+\multicolumn{2}{c|}{0.435} & x & \checkmark & \checkmark & \checkmark & \checkmark \\
+\multicolumn{2}{c|}{0.4375} & & & x & \checkmark & \checkmark \\
+\multicolumn{2}{c|}{0.44} & x & x & x & \checkmark & \checkmark \\
+\multicolumn{2}{c|}{0.4425} & & & x & \checkmark & x \\
+\multicolumn{2}{c|}{0.445} & x & x & x & x & x \\
+\multicolumn{2}{c|}{0.4475} & & & & x & x \\
+\multicolumn{2}{c|}{0.45} & x & x & x & x & x \\
+\multicolumn{2}{c|}{0.46} & x & x & x & x & x \\
+\multicolumn{2}{c|}{0.47} & x & x & x & x & x \\
+\multicolumn{2}{c|}{0.48} & x & x & x & x & x \\
+\multicolumn{2}{c|}{0.53} & x & x & x & x & x \\

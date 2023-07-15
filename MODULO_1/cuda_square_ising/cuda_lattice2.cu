@@ -12,12 +12,12 @@ __host__ void cudaInitFromLattice() {
 	gpuErrchk(cudaMemcpyToSymbol(d_energy, &energy, sizeof(double)));
 	gpuErrchk(cudaMemcpyToSymbol(d_magnetization, &magnetization, sizeof(double)));
     
-    double* delta_energy;
-    gpuErrchk(cudaGetSymbolAddress((void **)&delta_energy, d_delta_energy));
-    gpuErrchk(cudaMemset(delta_energy, 0., sizeof(double) * sizeof(spin) / sizeof(int)));
-    double* delta_magnetization;
-    gpuErrchk(cudaGetSymbolAddress((void **)&delta_magnetization, d_delta_magnetization));
-    gpuErrchk(cudaMemset(delta_magnetization, 0., sizeof(double) * sizeof(spin) / sizeof(int)));
+    int* temp_delta_energy;
+    gpuErrchk(cudaGetSymbolAddress((void **)&temp_delta_energy, d_delta_energy));
+    gpuErrchk(cudaMemset(temp_delta_energy, 0, sizeof(spin)));
+    int* temp_delta_magnetization;
+    gpuErrchk(cudaGetSymbolAddress((void **)&temp_delta_magnetization, d_delta_magnetization));
+    gpuErrchk(cudaMemset(temp_delta_magnetization, 0, sizeof(spin)));
 }
 
 __host__ void cudaRetrieveLattice() {
@@ -31,18 +31,18 @@ __host__ void cudaDestroyLattice() {
 }
 
 // .......................... temporary .......................
-__host__ void cudaMeasureEnergyMagnetization() {
+//__host__ void cudaMeasureEnergyMagnetization() {
 	// .................................. calculateEnergyMagnetizatonGPU<<<1, 1>>>();
-	gpuErrchk(cudaDeviceSynchronize());
-	gpuErrchk(cudaMemcpyFromSymbol(&energy, d_energy, sizeof(double)));
-	gpuErrchk(cudaMemcpyFromSymbol(&magnetization, d_magnetization, sizeof(double)));
-}
+//	gpuErrchk(cudaDeviceSynchronize());
+//	gpuErrchk(cudaMemcpyFromSymbol(&energy, d_energy, sizeof(double)));
+//	gpuErrchk(cudaMemcpyFromSymbol(&magnetization, d_magnetization, sizeof(double)));
+//}
 
-__host__ void cudaUpdateMetropolis() {
-	double rr[length * length];
-	for(int ii = 0; ii < length * length; ii++) rr[ii] = gen.randF();
-	gpuErrchk(cudaMemcpyToSymbol(d_rr, rr, sizeof(rr)));
-	int dead_spin = gen.randL(0, length * length);
+//__host__ void cudaUpdateMetropolis() {
+//	double rr[length * length];
+//	for(int ii = 0; ii < length * length; ii++) rr[ii] = gen.randF();
+//	gpuErrchk(cudaMemcpyToSymbol(d_rr, rr, sizeof(rr)));
+//	int dead_spin = gen.randL(0, length * length);
 	// ....................................int shared_size = (length + 2) * ((2 * nthreads - 1) / length + 3);
     /*
 	squareMetropolisStepGPU<<<nblocks, nthreads, shared_size * sizeof(int)>>>(0, dead_spin);
@@ -50,7 +50,7 @@ __host__ void cudaUpdateMetropolis() {
 	squareMetropolisStepGPU<<<nblocks, nthreads, shared_size * sizeof(int)>>>(1, dead_spin);
 	gpuErrchk(cudaDeviceSynchronize());
 	*/
-}
+//}
 // .......................... end temporary .....................
 
 // 1) atomicAdd
@@ -76,7 +76,7 @@ __global__ void squareMetropolisStepGPU1(int bw, int dead_spin, int length_) {
 	
     __syncthreads();
     
-	if(idx == dead_spin) return; // avoid loops!
+	if(index2d(ii,jj,length_) == dead_spin) return; // avoid loops!
 	int newspin = - s_sub_spin[index2d(y,x,BLOCK_SIDE+2)];
 	int neighbours = s_sub_spin[index2d(y-1,x,BLOCK_SIDE+2)] + s_sub_spin[index2d(y+1,x,BLOCK_SIDE+2)] + s_sub_spin[index2d(y,x-1,BLOCK_SIDE+2)] + s_sub_spin[index2d(y,x+1,BLOCK_SIDE+2)];
 	
@@ -86,8 +86,8 @@ __global__ void squareMetropolisStepGPU1(int bw, int dead_spin, int length_) {
 	double r = exp(- d_beta * denergy);
 	if (d_rr[index2d(ii,jj,length_)] < r) {
         d_spin[index2d(ii,jj,length_)] = newspin;
-		atomicAdd(&d_energy, denergy);
-		atomicAdd(&d_magnetization, -2. * newspin);
+		myAtomicAdd(&d_energy, denergy);
+		myAtomicAdd(&d_magnetization, -2. * newspin);
     }
 }
 
@@ -129,17 +129,17 @@ __global__ void squareMetropolisStepGPU2(int bw, int dead_spin, int length_) {
 	
 	s_sub_spin[index2d(y,x,BLOCK_SIDE+2)] = d_spin[index2d(ii,jj,length_)]; //centre
 	s_sub_spin[index2d(y,x-1,BLOCK_SIDE+2)] = d_spin[index2d(ii,jj-1,length_)]; //left
-    if(threadIdx.y == 0) s_sub_spin[index2d(y+1,x,BLOCK_SIDE+2)] = d_spin[index2d(ii+1,jj,length_)]; //up
-    if((threadIdx.y == blockDim.y - 1) || (ii == length_ - 1)) s_sub_spin[index2d(y-1,x,BLOCK_SIDE+2)] = d_spin[index2d(ii-1,jj,length_)]; //down
+    if(threadIdx.y == 0) s_sub_spin[index2d(y-1,x,BLOCK_SIDE+2)] = d_spin[index2d(ii-1,jj,length_)]; //up
+    if((threadIdx.y == blockDim.y - 1) || (ii == length_ - 1)) s_sub_spin[index2d(y+1,x,BLOCK_SIDE+2)] = d_spin[index2d(ii+1,jj,length_)]; //down
     if((threadIdx.x == blockDim.x - 1) || (jj == length_ - 1)) s_sub_spin[index2d(y,x+1,BLOCK_SIDE+2)] = d_spin[index2d(ii,jj+1,length_)]; //right
 	
     __syncthreads();
     
-	if(idx == dead_spin) return; // avoid loops!
+	if(index2d(ii,jj,length_) == dead_spin) return; // avoid loops!
 	int newspin = - s_sub_spin[index2d(y,x,BLOCK_SIDE+2)];
 	int neighbours = s_sub_spin[index2d(y-1,x,BLOCK_SIDE+2)] + s_sub_spin[index2d(y+1,x,BLOCK_SIDE+2)] + s_sub_spin[index2d(y,x-1,BLOCK_SIDE+2)] + s_sub_spin[index2d(y,x+1,BLOCK_SIDE+2)];
 	
-	double denergy = -2. * newspin * d_extrafield;
+	int denergy = -2. * newspin; // double ... * d_extrafield
 	denergy += JACC * -2. * newspin * neighbours;
 	
 	double r = exp(- d_beta * denergy);
@@ -151,13 +151,13 @@ __global__ void squareMetropolisStepGPU2(int bw, int dead_spin, int length_) {
 }
 
 __global__ void sumDeltaReduction2(int n) {
-	extern __shared__ double data[];
+	extern __shared__ int data[];
 	
 	int tid = threadIdx.x;
 	int index = threadIdx.x + (blockIdx.x * 2) * blockDim.x;
 	
-	double esum = (index < n) ? d_delta_energy[index] : 0;
-	double msum = (index < n) ? d_delta_magnetization[index] : 0;
+	int esum = (index < n) ? d_delta_energy[index] : 0;
+	int msum = (index < n) ? d_delta_magnetization[index] : 0;
 	if(index + blockDim.x < n) {
 		esum += d_delta_energy[index + blockDim.x];
 		msum += d_delta_magnetization[index + blockDim.x];
@@ -196,24 +196,24 @@ __host__ void cudaMeasureEnergyMagnetization2() {
 	int n = length;
 	int threads = (n < MAX_THREADS) ? nextPow2((n + 1) / 2) : MAX_THREADS;
 	int blocks = (n + (threads * 2 - 1)) / (threads * 2);
-	int smem_size = (threads <= 32) ? 4 * threads * sizeof(double) : 2 * threads * sizeof(double);
+	int smem_size = (threads <= 32) ? 4 * threads * sizeof(int) : 2 * threads * sizeof(int);
 	
 	sumDeltaReduction2<<<blocks,threads,smem_size>>>(n);
 	
-	double h_delta_energy[blocks], h_delta_magnetization[blocks];
-	gpuErrchk(cudaMemcpyFromSymbol(h_delta_energy, d_delta_energy, blocks * sizeof(double)));
-	gpuErrchk(cudaMemcpyFromSymbol(h_delta_magnetization, d_delta_magnetization, blocks * sizeof(double)));
+	int h_delta_energy[blocks], h_delta_magnetization[blocks];
+	gpuErrchk(cudaMemcpyFromSymbol(h_delta_energy, d_delta_energy, blocks * sizeof(int)));
+	gpuErrchk(cudaMemcpyFromSymbol(h_delta_magnetization, d_delta_magnetization, blocks * sizeof(int)));
 	for(int i = 1; i < blocks; i++) {
 		h_delta_energy[0] += h_delta_energy[i];
 		h_delta_magnetization[0] += h_delta_magnetization[i];
 	}
 	
-	double* temp_delta_energy;
+	int* temp_delta_energy;
     gpuErrchk(cudaGetSymbolAddress((void **)&temp_delta_energy, d_delta_energy));
-    gpuErrchk(cudaMemset(temp_delta_energy, 0., sizeof(double) * sizeof(spin) / sizeof(int)));
-    double* temp_delta_magnetization;
+    gpuErrchk(cudaMemset(temp_delta_energy, 0, sizeof(spin)));
+    int* temp_delta_magnetization;
     gpuErrchk(cudaGetSymbolAddress((void **)&temp_delta_magnetization, d_delta_magnetization));
-    gpuErrchk(cudaMemset(temp_delta_magnetization, 0., sizeof(double) * sizeof(spin) / sizeof(int)));
+    gpuErrchk(cudaMemset(temp_delta_magnetization, 0, sizeof(spin)));
 	
 	double normalization = 1. / (length * length);
 	energy += h_delta_energy[0] * normalization;
@@ -222,11 +222,11 @@ __host__ void cudaMeasureEnergyMagnetization2() {
 
 // 3) delta + CPU
 __host__ void sumDeltaSerial3() {
-	double h_delta_energy[length], h_delta_magnetization[length];
-	gpuErrchk(cudaMemcpyFromSymbol(h_delta_energy, d_delta_energy, length * sizeof(double)));
-	gpuErrchk(cudaMemcpyFromSymbol(h_delta_magnetization, d_delta_magnetization, length * sizeof(double)));
+	int h_delta_energy[length * length], h_delta_magnetization[length * length];
+	gpuErrchk(cudaMemcpyFromSymbol(h_delta_energy, d_delta_energy, length * length * sizeof(int)));
+	gpuErrchk(cudaMemcpyFromSymbol(h_delta_magnetization, d_delta_magnetization, length * length * sizeof(int)));
 	
-	double normalization = 1. / (d_length * d_length);
+	double normalization = 1. / (length * length);
 	for (int i = 0; i < length * length; i++) {
 		energy += h_delta_energy[i] * normalization;
 		magnetization += h_delta_magnetization[i] * normalization;
@@ -248,12 +248,12 @@ __host__ void cudaUpdateMetropolis3() {
 __host__ void cudaMeasureEnergyMagnetization3() {
 	sumDeltaSerial3();
 	
-	double* temp_delta_energy;
+	int* temp_delta_energy;
     gpuErrchk(cudaGetSymbolAddress((void **)&temp_delta_energy, d_delta_energy));
-    gpuErrchk(cudaMemset(temp_delta_energy, 0., sizeof(double) * sizeof(spin) / sizeof(int)));
-    double* temp_delta_magnetization;
+    gpuErrchk(cudaMemset(temp_delta_energy, 0, sizeof(spin)));
+    int* temp_delta_magnetization;
     gpuErrchk(cudaGetSymbolAddress((void **)&temp_delta_magnetization, d_delta_magnetization));
-    gpuErrchk(cudaMemset(temp_delta_magnetization, 0., sizeof(double) * sizeof(spin) / sizeof(int)));
+    gpuErrchk(cudaMemset(temp_delta_magnetization, 0, sizeof(spin)));
 }
 
 // 4) old
@@ -292,7 +292,7 @@ __global__ void squareMetropolisStepGPU4(int bw, int dead_spin, int length_) {
 	
     __syncthreads();
     
-	if(idx == dead_spin) return; // avoid loops!
+	if(index2d(ii,jj,length_) == dead_spin) return; // avoid loops!
 	int newspin = - s_sub_spin[index2d(y,x,BLOCK_SIDE+2)];
 	int neighbours = s_sub_spin[index2d(y-1,x,BLOCK_SIDE+2)] + s_sub_spin[index2d(y+1,x,BLOCK_SIDE+2)] + s_sub_spin[index2d(y,x-1,BLOCK_SIDE+2)] + s_sub_spin[index2d(y,x+1,BLOCK_SIDE+2)];
 	
@@ -330,20 +330,20 @@ __host__ void cudaMeasureEnergyMagnetization4() {
 
 // 5) old ma parallello atomicAdd
 
-__global__ void calculateEnergyMagnetizatonGPU5() {
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
-	int i = index / d_length, j = index % d_length; // sarebbe bello dividere in quadrati ed evitarsi i %
+//__global__ void calculateEnergyMagnetizatonGPU5() {
+//	int index = threadIdx.x + blockIdx.x * blockDim.x;
+//	int i = index / d_length, j = index % d_length; // sarebbe bello dividere in quadrati ed evitarsi i %
 	
-	if (index == 0) {
-		d_energy = 0.;
-		d_magnetization = 0.;
-	}
-	__syncthreads();
+//	if (index == 0) {
+//		d_energy = 0.;
+//		d_magnetization = 0.;
+//	}
+//	__syncthreads();
 	
-	int curr_spin = d_spin[index2d(i,j,d_length)];
-	int neighbours = d_spin[index2d(i+1,j,d_length)] + d_spin[index2d(i,j+1,d_length)];
-	atomicAdd(&d_energy, - curr_spin * neighbours);
-	atomicAdd(&d_magnetization, curr_spin);
+//	int curr_spin = d_spin[index2d(i,j,d_length)];
+//	int neighbours = d_spin[index2d(i+1,j,d_length)] + d_spin[index2d(i,j+1,d_length)];
+//	myAtomicAdd(&d_energy, - curr_spin * neighbours);
+//	myAtomicAdd(&d_magnetization, curr_spin);
 	
 	/* .................. da fare in measureEnergyMagnetization() ..................
 	double normalization = 1. / (d_length * d_length);
@@ -351,23 +351,23 @@ __global__ void calculateEnergyMagnetizatonGPU5() {
 	d_energy *= JACC * normalization;
 	d_energy += - d_extrafield * magnetization;
 	*/
-}
+//}
 
 // 6) old ma parallelo reduction
 
-__global__ void calculateEnergyMagnetizatonGPU6() {	
-	int index = threadIdx.x + blockIdx.x * blockDim.x;
-	int i = index / d_length, j = index % d_length; // sarebbe bello dividere in quadrati ed evitarsi i %
+//__global__ void calculateEnergyMagnetizatonGPU6() {	
+//	int index = threadIdx.x + blockIdx.x * blockDim.x;
+//	int i = index / d_length, j = index % d_length; // sarebbe bello dividere in quadrati ed evitarsi i %
 	
-	if (index == 0) {
-		d_energy = 0.;
-		d_magnetization = 0.;
-	}
+//	if (index == 0) {
+//		d_energy = 0.;
+//		d_magnetization = 0.;
+//	}
 	
-	int curr_spin = d_spin[index2d(i,j,d_length)];
-	int neighbours = d_spin[index2d(i+1,j,d_length)] + d_spin[index2d(i,j+1,d_length)];
-	d_delta_energy[index2d(i,j,d_length)] = - curr_spin * neighbours;
-	d_delta_magnetization[index2d(i,j,d_length)] = curr_spin;
+//	int curr_spin = d_spin[index2d(i,j,d_length)];
+//	int neighbours = d_spin[index2d(i+1,j,d_length)] + d_spin[index2d(i,j+1,d_length)];
+//	d_delta_energy[index2d(i,j,d_length)] = - curr_spin * neighbours;
+//	d_delta_magnetization[index2d(i,j,d_length)] = curr_spin;
 	
 	/* .................. da fare in measureEnergyMagnetization() ..................
 	double normalization = 1. / (d_length * d_length);
@@ -375,5 +375,5 @@ __global__ void calculateEnergyMagnetizatonGPU6() {
 	d_energy *= JACC * normalization;
 	d_energy += - d_extrafield * magnetization;
 	*/
-}
+//}
 
