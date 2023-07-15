@@ -24,33 +24,37 @@ namespace bound_cond_vecs {
 				for(int i = 0; i < new_length; i++) vec[i] = 0.;
 				length = new_length;
 			}
-			BoundCondVec(const int new_length, const int new_mode) {
+			BoundCondVec(const int new_length, const int new_mode, const T new_placeholder = 0.) {
 				assert(new_length <= MAX_LENGTH);
 				vec = new T[new_length];
 				for(int i = 0; i < new_length; i++) vec[i] = 0.;
 				length = new_length;
 				assert(new_mode == PERIODIC_BC || new_mode == ABSORBANT_BC || new_mode == REFLECTIVE_BC);
 				mode = new_mode;
+				placeholder = new_placeholder;
 			}
-			BoundCondVec(const int new_length, const T* new_vec) {
+			BoundCondVec(const int new_length, const T* new_vec, const T new_placeholder = 0.) {
 				assert(new_length <= MAX_LENGTH);
 				vec = new T[new_length];
 				for(int i = 0; i < new_length; i++) vec[i] = new_vec[i];
 				length = new_length;
+				placeholder = new_placeholder;
 			}
-			BoundCondVec(const int new_length, const T* new_vec, const int new_mode) {
+			BoundCondVec(const int new_length, const T* new_vec, const int new_mode, const T new_placeholder = 0.) {
 				assert(new_length <= MAX_LENGTH);
 				vec = new T[new_length];
 				for(int i = 0; i < new_length; i++) vec[i] = new_vec[i];
 				length = new_length;
 				assert(new_mode == PERIODIC_BC || new_mode == ABSORBANT_BC || new_mode == REFLECTIVE_BC);
 				mode = new_mode;
+				placeholder = new_placeholder;
 			}
 			BoundCondVec(const BoundCondVec & other_bcv) {
 				length = other_bcv.length;
 				vec = new T[length];
 				for(int i = 0; i < length; i++) vec[i] = other_bcv[i];
 				mode = other_bcv.mode;
+				placeholder = other_bcv.placeholder;
 			}
 			~BoundCondVec() {
 				if(length > 0) delete[] vec;
@@ -97,6 +101,12 @@ namespace bound_cond_vecs {
 			}
 			int getMode() const {
 				return mode;
+			}
+			T getPlaceholder() const {
+				return placeholder;
+			}
+			void setPlaceholder(T new_placeholder) {
+				placeholder = new_placeholder;
 			}
 	};
 }

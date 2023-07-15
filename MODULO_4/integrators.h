@@ -14,7 +14,7 @@ namespace integrators {
 	
 	DblBcv linspace(double x0, double x1, double n = 100, int m = PERIODIC_BC) {
 		DblBcv res(n, m);
-		double t = (x1 - x0) / n;
+		double t = (x1 - x0) / (n-1);
 		for(int ii = 0; ii < n; ii++) res[ii] = x0 + t * ii;
 		return res;
 	}
